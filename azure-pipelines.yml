@@ -9,6 +9,10 @@ steps:
     inputs:
       versionSpec: "$(python.version)"
 
+  - script: "bash -c 'find src tests -name \"*.py\" | xargs pylint; rc=$$?; ((($rc&(1+2+32))>0)) && exit $$rc || exit 0'"
+    displayName: "Lint using pylint"
+    continueOnError: true
+
   - script: "python -m pip install --upgrade pip && pip install .[ftp,hdfs,s3,sftp,dev]"
     displayName: "Install package + requirements"
 

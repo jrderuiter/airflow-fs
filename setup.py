@@ -13,17 +13,17 @@ with open("HISTORY.rst") as history_file:
 
 requirements = []
 
+setup_requirements = ["pytest-runner", "setuptools_scm"]
+
+test_requirements = ["pytest", "pytest-mock"]
+
 extra_requirements = {
     "ftp": ["ftputil"],
     "hdfs": ["hdfs3"],
     "s3": ["s3fs"],
     "sftp": ["pysftp"],
-    "dev": ["moto", "sphinx", "sphinx_rtd_theme"],
+    "dev": ["moto", "pylint", "sphinx", "sphinx_rtd_theme"] + test_requirements,
 }
-
-setup_requirements = ["pytest-runner", "setuptools_scm"]
-
-test_requirements = ["pytest", "pytest-mock", "pytest-helpers-namespace"]
 
 setuptools.setup(
     author="Julian de Ruiter",
