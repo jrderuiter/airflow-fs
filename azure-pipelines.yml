@@ -18,7 +18,7 @@ steps:
     env:
       SLUGIFY_USES_TEXT_UNIDECODE: "yes"
 
-  - script: "py.test tests --junitxml=.junit/test-results.xml --cov=src/airflow_fs --cov-report=html --cov-report=xml"
+  - script: "py.test tests --junitxml=.junit/test-results.xml --cov=airflow_fs --cov-report=html --cov-report=xml"
     displayName: "Run tests using pytest"
     env:
       AWS_ACCESS_KEY_ID: "foobar_key"
