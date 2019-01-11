@@ -15,7 +15,7 @@ requirements = []
 
 setup_requirements = ["pytest-runner", "setuptools_scm"]
 
-test_requirements = ["pytest", "pytest-mock"]
+test_requirements = ["pytest", "pytest-mock", "pytest-cov"]
 
 extra_requirements = {
     "ftp": ["ftputil"],
