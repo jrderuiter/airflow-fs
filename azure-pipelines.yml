@@ -1,19 +1,29 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
-trigger:
-- master
-
-pool:
-  vmImage: 'Ubuntu-16.04'
+queue:
+  name:
+variables:
+  python.version: "3.6"
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+  - task: "UsePythonVersion@0"
+    displayName: "Use Python $(python.version)"
+    inputs:
+      versionSpec: "$(python.version)"
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+  - script: "python -m pip install --upgrade pip && pip install .[ftp,hdfs,s3,sftp,dev]"
+    displayName: "Install package + requirements"
+
+  - script: "py.test tests --junitxml=.junit/test-results.xml --cov=src/airflow_fs --cov-report=html --cov-report=xml"
+    displayName: "Run tests using pytest"
+
+  - task: PublishTestResults@2
+    displayName: "Publish test results"
+    inputs:
+      testResultsFiles: "**/test-results.xml"
+      testRunTitle: "Python $(python.version)"
+
+  - task: PublishCodeCoverageResults@1
+    displayName: 'Publish test coverage results'
+    inputs:
+      summaryFileLocation: '$(System.DefaultWorkingDirectory)/**/coverage.xml'
+      reportDirectory: '$(System.DefaultWorkingDirectory)/**/htmlcov'
+      codecoverageTool: Cobertura
