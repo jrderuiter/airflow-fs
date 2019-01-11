@@ -22,7 +22,7 @@ extra_requirements = {
     "hdfs": ["hdfs3"],
     "s3": ["s3fs"],
     "sftp": ["pysftp"],
-    "dev": ["moto", "pylint", "sphinx", "sphinx_rtd_theme"] + test_requirements,
+    "dev": ["moto~=1.3", "pylint", "sphinx", "sphinx_rtd_theme"] + test_requirements,
 }
 
 setuptools.setup(
