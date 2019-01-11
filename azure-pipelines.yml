@@ -13,7 +13,7 @@ steps:
     displayName: "Lint using pylint"
     continueOnError: true
 
-  - script: "python -m pip install --upgrade pip && pip install .[ftp,hdfs,s3,sftp,dev]"
+  - script: "python -m pip install --upgrade pip && SLUGIFY_USES_TEXT_UNIDECODE=yes pip install .[ftp,hdfs,s3,sftp,dev]"
     displayName: "Install package + requirements"
 
   - script: "py.test tests --junitxml=.junit/test-results.xml --cov=src/airflow_fs --cov-report=html --cov-report=xml"
