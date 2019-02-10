@@ -19,5 +19,5 @@ jobs:
           name: Install package
           command: 'SLUGIFY_USES_TEXT_UNIDECODE=yes pip install .[all,dev]'
       - run:
-          name: pytest
+          name: Run tests
           command: 'pytest tests -vvv'

@@ -1,4 +1,4 @@
-.PHONY: clean clean-test clean-pyc clean-build docs help
+.PHONY: clean clean-test clean-pyc clean-build docs help docker docker-push
 .DEFAULT_GOAL := help
 
 define BROWSER_PYSCRIPT
@@ -53,8 +53,17 @@ clean-test: ## remove test and coverage artifacts
 lint: ## check style with flake8
 	flake8 airflow_fs tests
 
-test: ## run tests quickly with the default Python
-	py.test tests
+docker:  # build docker testing image
+	docker build -t jrderuiter/airflow-fs-ci docker
+
+docker-push: docker
+	docker push jrderuiter/airflow-fs-ci
+
+test: ## run tests
+	docker run -it --rm -v `pwd`:/app jrderuiter/airflow-fs-ci \
+		-c 'pip install /app[all,dev] && \
+			/bin/bash /usr/sbin/bootstrap.sh && \
+			pytest /app/tests -vvv'
 
 coverage: ## check code coverage quickly with the default Python
 	coverage run --source airflow_fs -m pytest

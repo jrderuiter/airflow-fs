@@ -55,5 +55,9 @@ RUN set -x \
     && useradd --shell /bin/sh --create-home --password $PASSWORD ftp-user \
     && chown -R ftp-user:ftp-user /ftp
 
+# Pre-install Airflow dependency.
+ENV SLUGIFY_USES_TEXT_UNIDECODE=yes
+RUN pip install apache-airflow
+
 ADD bootstrap.sh /usr/sbin/bootstrap.sh
 ENTRYPOINT ["/bin/bash"]
