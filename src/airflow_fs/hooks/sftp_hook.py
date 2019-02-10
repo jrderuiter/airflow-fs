@@ -12,6 +12,8 @@ from . import FsHook
 class SftpHook(FsHook):
     """Hook for interacting with files over SFTP."""
 
+    # TODO: Use walktree for a more efficient walk implementation?
+
     def __init__(self, conn_id):
         super().__init__()
         self._conn_id = conn_id
@@ -23,30 +25,31 @@ class SftpHook(FsHook):
 
         if self._conn is None:
             params = self.get_connection(self._conn_id)
-
-            cn_opts = pysftp.CnOpts()
-
-            if params.extra_dejson.get('ignore_hostkey_verification', False):
-                cn_opts.hostkeys = None
-
             private_key = params.extra_dejson.get('private_key', None)
+
+            cnopts = pysftp.CnOpts()
+            if params.extra_dejson.get('ignore_hostkey_verification', False):
+                cnopts.hostkeys = None
 
             if not private_key:
                 self._conn = pysftp.Connection(
                     params.host,
                     username=params.login,
-                    password=params.password)
+                    password=params.password,
+                    cnopts=cnopts)
             elif private_key and params.password:
                 self._conn = pysftp.Connection(
                     params.host,
                     username=params.login,
                     private_key=private_key,
-                    private_key_pass=params.password)
+                    private_key_pass=params.password,
+                    cnopts=cnopts)
             else:
                 self._conn = pysftp.Connection(
                     params.host,
                     username=params.login,
-                    private_key=private_key)
+                    private_key=private_key,
+                    cnopts=cnopts)
 
         return self._conn
 
@@ -65,9 +68,11 @@ class SftpHook(FsHook):
         return self.get_conn().isdir(path)
 
     def mkdir(self, dir_path, mode=0o755, exist_ok=True):
-        if not exist_ok and self.exists(dir_path):
-            self._raise_dir_exists(dir_path)
-        self.get_conn().mkdir(dir_path, mode=int(oct(mode)[2:]))
+        if self.exists(dir_path):
+            if not exist_ok:
+                self._raise_dir_exists(dir_path)
+        else:
+            self.get_conn().mkdir(dir_path, mode=int(oct(mode)[2:]))
 
     def listdir(self, dir_path):
         return self.get_conn().listdir(dir_path)
@@ -85,6 +90,8 @@ class SftpHook(FsHook):
     # Overridden default implementations.
 
     def makedirs(self, dir_path, mode=0o755, exist_ok=True):
-        if not exist_ok and self.exists(dir_path):
-            self._raise_dir_exists(dir_path)
-        self.get_conn().makedirs(dir_path, mode=int(oct(mode)[2:]))
+        if self.exists(dir_path):
+            if not exist_ok:
+                self._raise_dir_exists(dir_path)
+        else:
+            self.get_conn().makedirs(dir_path, mode=int(oct(mode)[2:]))

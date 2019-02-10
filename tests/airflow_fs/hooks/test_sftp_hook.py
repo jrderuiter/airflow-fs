@@ -1,202 +1,164 @@
-"""Tests for the sftp_hook module."""
+from getpass import getuser
+import posixpath
 
-import unittest
-import mock
+import pysftp
+import pytest
 
-from airflow_fs.hooks.sftp_hook import SftpHook, pysftp
+from airflow_fs.hooks import SftpHook
+from airflow_fs.testing import MockConnection
 
 
-class TestSftpHook(unittest.TestCase):
-    """
-    Tests for the SftpHook class.
+@pytest.fixture
+def sftp_conn(mocker):
+    conn = MockConnection(
+        host="localhost", login="root", extra={"ignore_hostkey_verification": True}
+    )
+    mocker.patch.object(SftpHook, "get_connection", return_value=conn)
+    return conn
 
-    Note that the SFTP session is mocked in most of these tests to avoid the
-    requirement of having a local FTP server for testing.
-    """
 
-    def setUp(self):
-        self._mock_fs = mock.Mock()
+@pytest.fixture(scope="session")
+def sftp_client():
+    """SFTP client to be used while testing."""
 
-        self._mocked_hook = SftpHook(conn_id='sftp_default')
-        self._mocked_hook._conn = self._mock_fs
+    cnopts = pysftp.CnOpts()
+    cnopts.hostkeys = None
 
-    @mock.patch.object(pysftp, 'Connection')
-    @mock.patch.object(SftpHook, 'get_connection')
-    def test_get_conn_pass(self, conn_mock, pysftp_mock):
-        """Tests get_conn with a password."""
+    return pysftp.Connection("localhost", username=getuser(), cnopts=cnopts)
 
-        conn_mock.return_value = mock.Mock(
-            host='example',
-            login='user',
-            password='password',
-            extra_dejson={})
 
-        with SftpHook(conn_id='sftp_default') as hook:
-            hook.get_conn()
+@pytest.fixture
+def sftp_dir(mock_data_dir, sftp_client, tmpdir):
+    """Creates a mock directory containing the standard test data."""
 
-        conn_mock.assert_called_once_with('sftp_default')
+    sftp_client.put_r(mock_data_dir, tmpdir)
+    return str(tmpdir)
 
-        pysftp_mock.assert_called_once_with(
-            'example',
-            username='user',
-            password='password')
 
-    @mock.patch.object(pysftp, 'Connection')
-    @mock.patch.object(SftpHook, 'get_connection')
-    def test_get_conn_key(self, conn_mock, pysftp_mock):
-        """Tests get_conn with a private key."""
+class TestSftpHook:
+    """Tests for the SftpHook class."""
 
-        conn_mock.return_value = mock.Mock(
-            host='example',
-            login='user',
-            password=None,
-            extra_dejson={'private_key': 'id_rsa'})
+    def test_open_read(self, sftp_conn, sftp_dir):
+        """Tests reading of a file using the `open` method."""
 
-        with SftpHook(conn_id='sftp_default') as hook:
-            hook.get_conn()
+        file_path = posixpath.join(sftp_dir, "test.txt")
 
-        conn_mock.assert_called_once_with('sftp_default')
+        with SftpHook("sftp_default") as hook:
+            with hook.open(file_path) as file_:
+                content = file_.read()
 
-        pysftp_mock.assert_called_once_with(
-            'example',
-            username='user',
-            private_key='id_rsa')
+        assert content == b"Test file\n"
 
-    @mock.patch.object(pysftp, 'Connection')
-    @mock.patch.object(SftpHook, 'get_connection')
-    def test_get_conn_key_pass(self, conn_mock, pysftp_mock):
-        """Tests get_conn with a private key + password."""
+    def test_open_write(self, sftp_conn, sftp_client, tmpdir):
+        """Tests writing of a file using the `open` method."""
 
-        conn_mock.return_value = mock.Mock(
-            host='example',
-            login='user',
-            password='key_pass',
-            extra_dejson={'private_key': 'id_rsa'})
+        file_path = posixpath.join(tmpdir, "test2.txt")
+        assert not sftp_client.exists(file_path)
 
-        with SftpHook(conn_id='sftp_default') as hook:
-            hook.get_conn()
+        with SftpHook("sftp_default") as hook:
+            with hook.open(file_path, "wb") as file_:
+                file_.write(b"Test file\n")
 
-        conn_mock.assert_called_once_with('sftp_default')
+        assert sftp_client.exists(file_path)
 
-        pysftp_mock.assert_called_once_with(
-            'example',
-            username='user',
-            private_key='id_rsa',
-            private_key_pass='key_pass')
-
-    def test_open(self):
-        """Tests the `open` method."""
-
-        with self._mocked_hook as hook:
-            hook.open('test.txt', mode='rb')
-
-        self._mock_fs.open.assert_called_once_with('test.txt', mode='rb')
-
-    def test_exists(self):
+    def test_exists(self, sftp_conn, sftp_dir):
         """Tests the `exists` method."""
 
-        with self._mocked_hook as hook:
-            hook.exists('test.txt')
+        with SftpHook("sftp_default") as hook:
+            assert hook.exists(posixpath.join(sftp_dir, "subdir"))
+            assert hook.exists(posixpath.join(sftp_dir, "test.txt"))
+            assert not hook.exists(posixpath.join(sftp_dir, "non-existing.txt"))
 
-        self._mock_fs.exists.assert_called_once_with('test.txt')
-
-    def test_isdir(self):
+    def test_isdir(self, sftp_conn, sftp_dir):
         """Tests the `isdir` method."""
 
-        with self._mocked_hook as hook:
-            hook.isdir('test.txt')
+        with SftpHook("sftp_default") as hook:
+            assert hook.isdir(posixpath.join(sftp_dir, "subdir"))
+            assert not hook.isdir(posixpath.join(sftp_dir, "test.txt"))
 
-        self._mock_fs.isdir.assert_called_once_with('test.txt')
+    def test_listdir(self, sftp_conn, sftp_dir):
+        """Tests the `listdir` method."""
 
-    def test_makedir(self):
-        """Tests the `makedir` method with a non-existing dir."""
+        with SftpHook("sftp_default") as hook:
+            assert set(hook.listdir(sftp_dir)) == {"test.txt", "subdir"}
 
-        self._mock_fs.exists.return_value = False
+    def test_mkdir(self, sftp_conn, sftp_client, tmpdir):
+        """Tests the `mkdir` method with mode parameter."""
 
-        with self._mocked_hook as hook:
-            hook.makedir('path/to/dir', mode=0o755)
+        dir_path = posixpath.join(tmpdir, "subdir")
+        assert not sftp_client.exists(dir_path)
 
-        self._mock_fs.mkdir.assert_called_once_with('path/to/dir', mode=755)
+        with SftpHook("sftp_default") as hook:
+            hook.mkdir(dir_path, mode=0o750)
 
-    def test_makedir_existing(self):
-        """Tests the `makedir` method with an existing dir
-           and exist_ok = False.
-        """
+        assert sftp_client.exists(dir_path)
+        assert pysftp.st_mode_to_int(sftp_client.stat(dir_path).st_mode) == 750
 
-        self._mock_fs.exists.return_value = True
+    def test_mkdir_exists(self, sftp_conn, sftp_client, tmpdir):
+        """Tests the `mkdir` method with the exists_ok parameter."""
 
-        with self._mocked_hook as hook:
-            with self.assertRaises(IOError):
-                hook.makedir('path/to/dir', mode=0o755, exist_ok=False)
+        dir_path = posixpath.join(tmpdir, "subdir")
+        assert not sftp_client.exists(dir_path)
 
-    def test_makedir_existing_ok(self):
-        """Tests the `makedir` method with an existing dir
-           and exist_ok = True.
-        """
+        with SftpHook("sftp_default") as hook:
+            hook.mkdir(dir_path, exist_ok=False)
 
-        self._mock_fs.exists.return_value = True
+            with pytest.raises(IOError):
+                hook.mkdir(dir_path, exist_ok=False)
 
-        with self._mocked_hook as hook:
-            hook.makedir('path/to/dir', mode=0o755, exist_ok=True)
+            hook.mkdir(dir_path, exist_ok=True)
 
-    def test_makedirs(self):
-        """Tests the `makedirs` method with a non-existing dir."""
-
-        self._mock_fs.exists.return_value = False
-
-        with self._mocked_hook as hook:
-            hook.makedirs('path/to/dir', mode=0o755)
-
-        self._mock_fs.makedirs.assert_called_once_with(
-            'path/to/dir', mode=755)
-
-    def test_makedirs_existing(self):
-        """Tests the `makedirs` method with an existing dir
-           and exist_ok = False.
-        """
-
-        self._mock_fs.exists.return_value = True
-
-        with self._mocked_hook as hook:
-            with self.assertRaises(IOError):
-                hook.makedirs('path/to/dir', mode=0o755, exist_ok=False)
-
-    def test_makedirs_existing_ok(self):
-        """Tests the `makedir` method with an existing dir
-           and exist_ok = True.
-        """
-
-        self._mock_fs.exists.return_value = True
-
-        with self._mocked_hook as hook:
-            hook.makedirs('path/to/dir', mode=0o755, exist_ok=True)
-
-    # def test_glob(self):
-    #     """Tests the `glob` method."""
-
-    #     with self._mocked_hook as hook:
-    #         hook.glob('*.txt')
-
-    #     self._mock_fs.glob.assert_called_once_with('*.txt')
-
-    def test_rm(self):
+    def test_rm(self, sftp_conn, sftp_client, sftp_dir):
         """Tests the `rm` method."""
 
-        with self._mocked_hook as hook:
-            hook.rm('test_file')
+        file_path = posixpath.join(sftp_dir, "test.txt")
+        assert sftp_client.exists(file_path)
 
-        self._mock_fs.remove.assert_called_once_with('test_file')
+        with SftpHook("sftp_default") as hook:
+            hook.rm(file_path)
 
-    def test_rmtree(self):
+        assert not sftp_client.exists(file_path)
+
+    def test_rmtree(self, sftp_conn, sftp_client, sftp_dir):
         """Tests the `rmtree` method."""
 
-        self._mock_fs.execute.return_value = None
+        dir_path = posixpath.join(sftp_dir, "subdir")
+        assert sftp_client.exists(dir_path)
 
-        with self._mocked_hook as hook:
-            hook.rmtree('test_dir')
+        with SftpHook("sftp_default") as hook:
+            hook.rmtree(dir_path)
 
-        self._mock_fs.execute.assert_called_once_with("rm -r 'test_dir'")
+        assert not sftp_client.exists(dir_path)
 
+    def test_makedirs(self, sftp_conn, sftp_client, tmpdir):
+        """Tests the `mkdir` method with mode parameter."""
 
-if __name__ == '__main__':
-    unittest.main()
+        dir_path = posixpath.join(tmpdir, "some", "nested", "dir")
+
+        with SftpHook("sftp_default") as hook:
+            hook.makedirs(dir_path, mode=0o750)
+
+        assert sftp_client.exists(dir_path)
+        assert pysftp.st_mode_to_int(sftp_client.stat(dir_path).st_mode) == 750
+
+    def test_makedirs_exists(self, sftp_conn, sftp_client, tmpdir):
+        """Tests the `mkdir` method with exists_ok parameter."""
+
+        dir_path = posixpath.join(tmpdir, "some", "nested", "dir")
+
+        with SftpHook("sftp_default") as hook:
+            hook.makedirs(dir_path, exist_ok=False)
+
+            with pytest.raises(IOError):
+                hook.makedirs(dir_path, exist_ok=False)
+
+            hook.makedirs(dir_path, exist_ok=True)
+
+    def test_walk(self, sftp_conn, sftp_dir):
+        """Tests the `walk` method."""
+
+        with SftpHook("sftp_default") as hook:
+            entries = list(hook.walk(sftp_dir))
+
+        assert entries[0] == (sftp_dir, ["subdir"], ["test.txt"])
+        assert entries[1] == (posixpath.join(sftp_dir, "subdir"), [], ["nested.txt"])

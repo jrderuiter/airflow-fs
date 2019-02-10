@@ -26,6 +26,13 @@ extra_requirements = {
     "dev": dev_requirements + test_requirements,
 }
 
+extra_requirements["all"] = (
+    extra_requirements["ftp"]
+    + extra_requirements["hdfs"]
+    + extra_requirements["s3"]
+    + extra_requirements["sftp"]
+)
+
 setuptools.setup(
     author="Julian de Ruiter",
     author_email="julianderuiter@gmail.com",

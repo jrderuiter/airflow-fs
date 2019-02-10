@@ -1,162 +1,143 @@
-from builtins import open
-
+from distutils.dir_util import copy_tree
 import os
-from os import path
-import unittest
-import shutil
-import tempfile
+import posixpath
 
-from airflow_fs.hooks.local_hook import LocalHook
+import pytest
+
+from airflow_fs.hooks import LocalHook
 
 
-class TestLocalHook(unittest.TestCase):
-    """Tests for the LocalHook."""
+@pytest.fixture
+def test_dir(mock_data_dir, tmpdir):
+    """Creates a temp directory containing the standard test data."""
+    copy_tree(mock_data_dir, str(tmpdir))
+    return str(tmpdir)
 
-    def setUp(self):
-        self._tmp_dir = tempfile.mkdtemp()
 
-        # Bootstrap some files.
-        with open(path.join(self._tmp_dir, 'hello.txt'), 'wb') as file_:
-            file_.write(b'Hello world!\n')
+class TestLocalHook:
+    """Tests for the LocalHook class."""
 
-        with open(path.join(self._tmp_dir, 'hello.csv'), 'wb') as file_:
-            file_.write(b'Hello world!\n')
+    def test_open_read(self, test_dir):
+        """Tests reading of a file using the `open` method."""
 
-        nested_dir = path.join(self._tmp_dir, 'test')
-        os.mkdir(nested_dir)
-
-        with open(path.join(nested_dir, 'nested.txt'), 'wb') as file_:
-            file_.write(b'Nested\n')
-
-    def tearDown(self):
-        shutil.rmtree(self._tmp_dir)
-
-    def test_open(self):
-        """Tests the open method."""
+        file_path = posixpath.join(test_dir, "test.txt")
 
         with LocalHook() as hook:
-            # Try to write file.
-            new_path = path.join(self._tmp_dir, 'new.txt')
-            self.assertFalse(hook.exists(new_path))
+            with hook.open(file_path) as file_:
+                content = file_.read()
 
-            with hook.open(new_path, 'wb') as file_:
-                file_.write(b'Hello world!')
+        assert content == b"Test file\n"
 
-            # Check file exists.
-            self.assertTrue(hook.exists(new_path))
+    def test_open_write(self, tmpdir):
+        """Tests writing of a file using the `open` method."""
 
-            # Check reading file.
-            with hook.open(new_path, 'rb') as file_:
-                self.assertEqual(file_.read(), b'Hello world!')
-
-    def test_exists(self):
-        """Tests the exists method."""
+        file_path = posixpath.join(tmpdir, "test2.txt")
+        assert not posixpath.exists(file_path)
 
         with LocalHook() as hook:
-            self.assertTrue(
-                hook.exists(path.join(self._tmp_dir, 'hello.txt')))
-            self.assertFalse(
-                hook.exists(path.join(self._tmp_dir, 'random.txt')))
+            with hook.open(file_path, "wb") as file_:
+                file_.write(b"Test file\n")
 
-    def test_isdir(self):
-        """Tests the isdir method."""
+        assert posixpath.exists(file_path)
 
-        with LocalHook() as hook:
-            self.assertTrue(hook.isdir(path.join(self._tmp_dir, 'test')))
-            self.assertFalse(hook.isdir(path.join(self._tmp_dir, 'test.txt')))
-
-    def test_makedir(self):
-        """Tests the makedir method."""
+    def test_exists(self, test_dir):
+        """Tests the `exists` method."""
 
         with LocalHook() as hook:
-            # Test non-existing directory.
-            dir_path = path.join(self._tmp_dir, 'new')
-            self.assertFalse(hook.exists(dir_path))
-            hook.makedir(dir_path)
-            self.assertTrue(hook.exists(dir_path))
+            assert hook.exists(posixpath.join(test_dir, "subdir"))
+            assert hook.exists(posixpath.join(test_dir, "test.txt"))
+            assert not hook.exists(posixpath.join(test_dir, "non-existing.txt"))
 
-            # Test existing directory with exist_ok = True.
-            dir_path = path.join(self._tmp_dir, 'test')
-            self.assertTrue(hook.exists(dir_path))
-            hook.makedir(dir_path, exist_ok=True)
-
-            # Test existing directory with exist_ok = False.
-            with self.assertRaises(IOError):
-                hook.makedir(dir_path, exist_ok=False)
-
-            # Test nested directory (should fail).
-            dir_path = path.join(self._tmp_dir, 'new2', 'nested')
-            with self.assertRaises(IOError):
-                hook.makedir(dir_path)
-
-    def test_makedirs(self):
-        """Tests the makedirs method."""
+    def test_isdir(self, test_dir):
+        """Tests the `isdir` method."""
 
         with LocalHook() as hook:
-            # Test non-existing directory.
-            dir_path = path.join(self._tmp_dir, 'new')
-            self.assertFalse(hook.exists(dir_path))
-            hook.makedirs(dir_path)
-            self.assertTrue(hook.exists(dir_path))
+            assert hook.isdir(posixpath.join(test_dir, "subdir"))
+            assert not hook.isdir(posixpath.join(test_dir, "test.txt"))
 
-            # Test existing directory with exist_ok = True.
-            dir_path = path.join(self._tmp_dir, 'test')
-            self.assertTrue(hook.exists(dir_path))
-            hook.makedirs(dir_path, exist_ok=True)
+    def test_listdir(self, test_dir):
+        """Tests the `listdir` method."""
 
-            # Test existing directory with exist_ok = False.
-            with self.assertRaises(IOError):
+        with LocalHook() as hook:
+            assert set(hook.listdir(test_dir)) == {"test.txt", "subdir"}
+
+    def test_mkdir(self, tmpdir):
+        """Tests the `mkdir` method with mode parameter."""
+
+        dir_path = posixpath.join(tmpdir, "subdir")
+        assert not posixpath.exists(dir_path)
+
+        with LocalHook() as hook:
+            hook.mkdir(dir_path, mode=0o750)
+
+        assert posixpath.exists(dir_path)
+        assert oct(os.stat(dir_path).st_mode)[-3:] == "750"
+
+    def test_mkdir_exists(self, tmpdir):
+        """Tests the `mkdir` method with the exists_ok parameter."""
+
+        dir_path = posixpath.join(tmpdir, "subdir")
+        assert not posixpath.exists(dir_path)
+
+        with LocalHook() as hook:
+            hook.mkdir(dir_path, exist_ok=False)
+
+            with pytest.raises(IOError):
+                hook.mkdir(dir_path, exist_ok=False)
+
+            hook.mkdir(dir_path, exist_ok=True)
+
+    def test_rm(self, test_dir):
+        """Tests the `rm` method."""
+
+        file_path = posixpath.join(test_dir, "test.txt")
+        assert posixpath.exists(file_path)
+
+        with LocalHook() as hook:
+            hook.rm(file_path)
+
+        assert not posixpath.exists(file_path)
+
+    def test_rmtree(self, test_dir):
+        """Tests the `rmtree` method."""
+
+        dir_path = posixpath.join(test_dir, "subdir")
+        assert posixpath.exists(dir_path)
+
+        with LocalHook() as hook:
+            hook.rmtree(dir_path)
+
+        assert not posixpath.exists(dir_path)
+
+    def test_makedirs(self, tmpdir):
+        """Tests the `mkdir` method with mode parameter."""
+
+        dir_path = posixpath.join(tmpdir, "some", "nested", "dir")
+
+        with LocalHook() as hook:
+            hook.makedirs(dir_path, mode=0o750)
+
+        assert posixpath.exists(dir_path)
+        assert oct(os.stat(dir_path).st_mode)[-3:] == "750"
+
+    def test_makedirs_exists(self, tmpdir):
+        """Tests the `mkdir` method with exists_ok parameter."""
+
+        dir_path = posixpath.join(tmpdir, "some", "nested", "dir")
+
+        with LocalHook() as hook:
+            hook.makedirs(dir_path, exist_ok=False)
+
+            with pytest.raises(IOError):
                 hook.makedirs(dir_path, exist_ok=False)
 
-            # Test nested directory (should fail).
-            dir_path = path.join(self._tmp_dir, 'new2', 'nested')
-            hook.makedirs(dir_path)
-            self.assertTrue(hook.exists(dir_path))
+            hook.makedirs(dir_path, exist_ok=True)
 
-    def test_walk(self):
-        """Tests the walk method."""
-
-        expected = [(self._tmp_dir, ['test'], ['hello.csv', 'hello.txt']),
-                    (path.join(self._tmp_dir, 'test'), [], ['nested.txt'])]
+    def test_walk(self, test_dir):
+        """Tests the `walk` method."""
 
         with LocalHook() as hook:
-            result = list(hook.walk(self._tmp_dir))
+            entries = list(hook.walk(test_dir))
 
-        for res_item, exp_item in zip(result, expected):
-            self.assertEqual(res_item[0], exp_item[0])
-            self.assertEqual(sorted(res_item[1]), sorted(exp_item[1]))
-            self.assertEqual(sorted(res_item[2]), sorted(exp_item[2]))
-
-    def test_glob(self):
-        """Tests glob method."""
-
-        with LocalHook() as hook:
-            self.assertEqual(
-                list(hook.glob(path.join(self._tmp_dir, '*.txt'))),
-                [path.join(self._tmp_dir, 'hello.txt')])
-
-            self.assertEqual(list(hook.glob(path.join(self._tmp_dir, '*.xml'))), [])
-
-    def test_rm(self):
-        """Tests rm method."""
-
-        with LocalHook() as hook:
-            file_path = path.join(self._tmp_dir, 'hello.txt')
-            self.assertTrue(hook.exists(file_path))
-
-            hook.rm(file_path)
-            self.assertFalse(hook.exists(file_path))
-
-    def test_rmtree(self):
-        """Tests the rmtree method."""
-
-        with LocalHook() as hook:
-            dir_path = path.join(self._tmp_dir, 'test')
-            self.assertTrue(hook.exists(dir_path))
-
-            hook.rmtree(dir_path)
-            self.assertFalse(hook.exists(dir_path))
-
-
-if __name__ == '__main__':
-    unittest.main()
+        assert entries[0] == (test_dir, ["subdir"], ["test.txt"])
+        assert entries[1] == (posixpath.join(test_dir, "subdir"), [], ["nested.txt"])

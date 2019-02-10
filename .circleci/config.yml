@@ -7,8 +7,17 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Fix passwordless ssh
+          command: |
+            rm ~/.ssh/id_rsa &&
+            ssh-keygen -q -N "" -t rsa -f ~/.ssh/id_rsa &&
+            cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+      - run:
+          name: Bootstrap services
+          command: '/bin/bash /usr/sbin/bootstrap.sh'
+      - run:
           name: Install package
-          command: 'SLUGIFY_USES_TEXT_UNIDECODE=yes pip install .[hdfs,dev]'
+          command: 'SLUGIFY_USES_TEXT_UNIDECODE=yes pip install .[all,dev]'
       - run:
           name: pytest
           command: 'pytest tests -vvv'

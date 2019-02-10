@@ -1,191 +1,174 @@
-import ftplib
-import unittest
+import posixpath
 
-import mock
+import ftputil
+import pytest
 
-from airflow_fs.hooks.ftp_hook import FtpHook, ftputil, ftp_session
+from airflow_fs.hooks import FtpHook
+from airflow_fs.testing import MockConnection, copy_tree
 
 
-class TestFtpHook(unittest.TestCase):
-    """
-    Tests for the FtpHook class.
+@pytest.fixture
+def ftp_conn(mocker):
+    conn = MockConnection(host="localhost", login="ftp-user", password="default")
+    mocker.patch.object(FtpHook, "get_connection", return_value=conn)
+    return conn
 
-    Note that the FTP session is mocked in most of these tests to avoid the
-    requirement of having a local FTP server for testing.
-    """
 
-    def setUp(self):
-        self._mock_fs = mock.Mock()
+@pytest.fixture(scope="session")
+def ftp_client():
+    """FTP client to be used while testing."""
+    return ftputil.FTPHost("localhost", "ftp-user", "default")
 
-        self._mocked_hook = FtpHook(conn_id='ftp_default')
-        self._mocked_hook._conn = self._mock_fs
 
-    @mock.patch.object(ftp_session, 'session_factory')
-    @mock.patch.object(ftputil, 'FTPHost')
-    @mock.patch.object(FtpHook, 'get_connection')
-    def test_get_conn(self, conn_mock, host_mock, session_mock):
-        """Tests get_conn call with unsecured connection."""
+@pytest.fixture
+def ftp_tmpdir(ftp_client, tmpdir, request):
+    dir_path = posixpath.join("/ftp", str(tmpdir)[1:])
+    ftp_client.makedirs(dir_path)
+    request.addfinalizer(lambda: ftp_client.rmtree(dir_path))
+    return dir_path
 
-        conn_mock.return_value = mock.Mock(
-            host='example',
-            login='user',
-            password='password',
-            port=2121,
-            extra_dejson={'tls': False})
 
-        with FtpHook(conn_id='ftp_default') as hook:
-            hook.get_conn()
+@pytest.fixture
+def test_dir(mock_data_dir, ftp_client, ftp_tmpdir):
+    """Creates a mock directory containing the standard test data."""
 
-        conn_mock.assert_called_once_with('ftp_default')
+    copy_tree(
+        mock_data_dir,
+        ftp_tmpdir,
+        mkdir_func=ftp_client.mkdir,
+        cp_func=ftp_client.upload,
+    )
+    return ftp_tmpdir
 
-        host_mock.assert_called_once_with(
-            'example',
-            'user',
-            'password',
-            session_factory=mock.ANY)
 
-        session_mock.assert_called_once_with(
-            base_class=ftplib.FTP,
-            port=2121,
-            encrypt_data_channel=False)
+class TestFtpHook:
+    """Tests for the FtpHook class."""
 
-    @mock.patch.object(ftp_session, 'session_factory')
-    @mock.patch.object(ftputil, 'FTPHost')
-    @mock.patch.object(FtpHook, 'get_connection')
-    def test_get_conn_tls(self, conn_mock, host_mock, session_mock):
-        """Tests get_conn call with a secured connection."""
+    def test_open_read(self, ftp_conn, test_dir):
+        """Tests reading of a file using the `open` method."""
 
-        conn_mock.return_value = mock.Mock(
-            host='example',
-            login='user',
-            password='password',
-            port=2121,
-            extra_dejson={'tls': True})
+        file_path = posixpath.join(test_dir, "test.txt")
 
-        with FtpHook(conn_id='ftp_default') as hook:
-            hook.get_conn()
+        with FtpHook("ftp_default") as hook:
+            with hook.open(file_path) as file_:
+                content = file_.read()
 
-        conn_mock.assert_called_once_with('ftp_default')
+        assert content == b"Test file\n"
 
-        host_mock.assert_called_once_with(
-            'example',
-            'user',
-            'password',
-            session_factory=mock.ANY)
+    def test_open_write(self, ftp_conn, ftp_client, ftp_tmpdir):
+        """Tests writing of a file using the `open` method."""
 
-        session_mock.assert_called_once_with(
-            base_class=ftplib.FTP_TLS,
-            port=2121,
-            encrypt_data_channel=True)
+        file_path = posixpath.join(ftp_tmpdir, "test2.txt")
+        assert not ftp_client.path.exists(file_path)
 
-    def test_open(self):
-        """Tests the `open` method."""
+        with FtpHook("ftp_default") as hook:
+            with hook.open(file_path, "wb") as file_:
+                file_.write(b"Test file\n")
 
-        with self._mocked_hook as hook:
-            hook.open('test.txt', mode='rb')
+        assert ftp_client.path.exists(file_path)
 
-        self._mock_fs.open.assert_called_once_with('test.txt', mode='rb')
-
-    def test_exists(self):
+    def test_exists(self, ftp_conn, test_dir):
         """Tests the `exists` method."""
 
-        with self._mocked_hook as hook:
-            hook.exists('test.txt')
+        with FtpHook("ftp_default") as hook:
+            assert hook.exists(posixpath.join(test_dir, "subdir"))
+            assert hook.exists(posixpath.join(test_dir, "test.txt"))
+            assert not hook.exists(posixpath.join(test_dir, "non-existing.txt"))
 
-        self._mock_fs.path.exists.assert_called_once_with('test.txt')
-
-    def test_isdir(self):
+    def test_isdir(self, ftp_conn, test_dir):
         """Tests the `isdir` method."""
 
-        with self._mocked_hook as hook:
-            hook.isdir('test.txt')
+        with FtpHook("ftp_default") as hook:
+            assert hook.isdir(posixpath.join(test_dir, "subdir"))
+            assert not hook.isdir(posixpath.join(test_dir, "test.txt"))
 
-        self._mock_fs.isdir.assert_called_once_with('test.txt')
+    def test_listdir(self, ftp_conn, test_dir):
+        """Tests the `listdir` method."""
 
-    def test_makedir(self):
-        """Tests the `makedir` method with a non-existing dir."""
+        with FtpHook("ftp_default") as hook:
+            assert set(hook.listdir(test_dir)) == {"test.txt", "subdir"}
 
-        self._mock_fs.exists.return_value = False
+    def test_mkdir(self, ftp_conn, ftp_client, ftp_tmpdir):
+        """Tests the `mkdir` method with mode parameter."""
 
-        with self._mocked_hook as hook:
-            hook.makedir('path/to/dir', mode=0o755)
+        dir_path = posixpath.join(ftp_tmpdir, "subdir")
+        assert not ftp_client.path.exists(dir_path)
 
-        self._mock_fs.mkdir.assert_called_once_with('path/to/dir', mode=0o755)
+        with FtpHook("ftp_default") as hook:
+            hook.mkdir(dir_path, mode=0o750)
 
-    def test_makedir_existing(self):
-        """Tests the `makedir` method with an existing dir
-           and exist_ok = False.
-        """
+        assert ftp_client.path.exists(dir_path)
+        assert oct(ftp_client.stat(dir_path).st_mode)[-3:] == "750"
 
-        self._mock_fs.exists.return_value = True
+    def test_mkdir_exists(self, ftp_conn, ftp_client, ftp_tmpdir):
+        """Tests the `mkdir` method with the exists_ok parameter."""
 
-        with self._mocked_hook as hook:
-            with self.assertRaises(IOError):
-                hook.makedir('path/to/dir', mode=0o755, exist_ok=False)
+        dir_path = posixpath.join(ftp_tmpdir, "subdir")
+        assert not ftp_client.path.exists(dir_path)
 
-    def test_makedir_existing_ok(self):
-        """Tests the `makedir` method with an existing dir
-           and exist_ok = True.
-        """
+        with FtpHook("ftp_default") as hook:
+            hook.mkdir(dir_path, exist_ok=False)
 
-        self._mock_fs.exists.return_value = True
+            with pytest.raises(IOError):
+                hook.mkdir(dir_path, exist_ok=False)
 
-        with self._mocked_hook as hook:
-            hook.makedir('path/to/dir', mode=0o755, exist_ok=True)
+            hook.mkdir(dir_path, exist_ok=True)
 
-        self._mock_fs.chmod.assert_not_called()
-
-    def test_makedirs(self):
-        """Tests the `makedirs` method with a non-existing dir."""
-
-        self._mock_fs.exists.return_value = False
-
-        with self._mocked_hook as hook:
-            hook.makedirs('path/to/dir', mode=0o755)
-
-        self._mock_fs.makedirs.assert_called_once_with(
-            'path/to/dir', mode=0o755)
-
-    def test_makedirs_existing(self):
-        """Tests the `makedirs` method with an existing dir
-           and exist_ok = False.
-        """
-
-        self._mock_fs.exists.return_value = True
-
-        with self._mocked_hook as hook:
-            with self.assertRaises(IOError):
-                hook.makedirs('path/to/dir', mode=0o755, exist_ok=False)
-
-        self._mock_fs.makedirs.assert_not_called()
-
-    def test_makedirs_existing_ok(self):
-        """Tests the `makedir` method with an existing dir
-           and exist_ok = True.
-        """
-
-        self._mock_fs.exists.return_value = True
-
-        with self._mocked_hook as hook:
-            hook.makedirs('path/to/dir', mode=0o755, exist_ok=True)
-
-    def test_rm(self):
+    def test_rm(self, ftp_conn, ftp_client, test_dir):
         """Tests the `rm` method."""
 
-        with self._mocked_hook as hook:
-            hook.rm('test_dir')
+        file_path = posixpath.join(test_dir, "test.txt")
+        assert ftp_client.path.exists(file_path)
 
-        self._mock_fs.remove.assert_called_once_with('test_dir')
+        with FtpHook("ftp_default") as hook:
+            hook.rm(file_path)
 
-    def test_rmtree(self):
+        # Invalidate cache to get current state.
+        ftp_client.stat_cache.invalidate(file_path)
+        assert not ftp_client.path.exists(file_path)
+
+    def test_rmtree(self, ftp_conn, ftp_client, test_dir):
         """Tests the `rmtree` method."""
 
-        with self._mocked_hook as hook:
-            hook.rmtree('test_dir')
+        dir_path = posixpath.join(test_dir, "subdir")
+        assert ftp_client.path.exists(dir_path)
 
-        self._mock_fs.rmtree.assert_called_once_with(
-            'test_dir', ignore_errors=False)
+        with FtpHook("ftp_default") as hook:
+            hook.rmtree(dir_path)
 
+        # Invalidate cache to get current state.
+        ftp_client.stat_cache.invalidate(dir_path)
+        assert not ftp_client.path.exists(dir_path)
 
-if __name__ == '__main__':
-    unittest.main()
+    def test_makedirs(self, ftp_conn, ftp_client, ftp_tmpdir):
+        """Tests the `mkdir` method with mode parameter."""
+
+        dir_path = posixpath.join(ftp_tmpdir, "some", "nested", "dir")
+
+        with FtpHook("ftp_default") as hook:
+            hook.makedirs(dir_path, mode=0o750)
+
+        assert ftp_client.path.exists(dir_path)
+        assert oct(ftp_client.stat(dir_path).st_mode)[-3:] == "750"
+
+    def test_makedirs_exists(self, ftp_conn, ftp_client, ftp_tmpdir):
+        """Tests the `mkdir` method with exists_ok parameter."""
+
+        dir_path = posixpath.join(ftp_tmpdir, "some", "nested", "dir")
+
+        with FtpHook("ftp_default") as hook:
+            hook.makedirs(dir_path, exist_ok=False)
+
+            with pytest.raises(IOError):
+                hook.makedirs(dir_path, exist_ok=False)
+
+            hook.makedirs(dir_path, exist_ok=True)
+
+    def test_walk(self, ftp_conn, test_dir):
+        """Tests the `walk` method."""
+
+        with FtpHook("ftp_default") as hook:
+            entries = list(hook.walk(test_dir))
+
+        assert entries[0] == (test_dir, ["subdir"], ["test.txt"])
+        assert entries[1] == (posixpath.join(test_dir, "subdir"), [], ["nested.txt"])

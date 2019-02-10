@@ -50,15 +50,19 @@ class FtpHook(FsHook):
         return self.get_conn().open(file_path, mode=mode)
 
     def isdir(self, path):
-        return self.get_conn().isdir(path)
+        return self.get_conn().path.isdir(path)
 
     def exists(self, file_path):
         return self.get_conn().path.exists(file_path)
 
     def mkdir(self, dir_path, mode=0o755, exist_ok=True):
-        if not exist_ok and self.exists(dir_path):
-            self._raise_dir_exists(dir_path)
-        self.get_conn().mkdir(dir_path, mode=mode)
+        if self.exists(dir_path):
+            if not exist_ok:
+                self._raise_dir_exists(dir_path)
+        else:
+            client = self.get_conn()
+            client.mkdir(dir_path)
+            client.chmod(dir_path, mode=mode)
 
     def listdir(self, dir_path):
         return self.get_conn().listdir(dir_path)
@@ -72,9 +76,13 @@ class FtpHook(FsHook):
     # Overridden default implementations.
 
     def makedirs(self, dir_path, mode=0o755, exist_ok=True):
-        if not exist_ok and self.exists(dir_path):
-            self._raise_dir_exists(dir_path)
-        self.get_conn().makedirs(dir_path, mode=mode)
+        if self.exists(dir_path):
+            if not exist_ok:
+                self._raise_dir_exists(dir_path)
+        else:
+            client = self.get_conn()
+            client.makedirs(dir_path)
+            client.chmod(dir_path, mode=mode)
 
     def walk(self, dir_path):
         for tup in self.get_conn().walk(dir_path):

@@ -5,7 +5,7 @@ RUN apt-get update \
     && apt-get install -y openssh-server \
     && apt-get clean \
     && ssh-keygen -q -N "" -t rsa -f /root/.ssh/id_rsa \
-    && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys
+    && cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys
 
 # Install Java JRE.
 ENV JAVA_HOME /usr/local/java
@@ -25,11 +25,11 @@ ENV HADOOP_HOME=/usr/local/hadoop \
     HADOOP_MAPRED_HOME=/usr/local/hadoop \
     HADOOP_YARN_HOME=/usr/local/hadoop \
     HADOOP_CONF_DIR=/usr/local/hadoop/etc/hadoop \
-    HDFS_NAMENODE_USER="root" \
-    HDFS_DATANODE_USER="root" \
-    HDFS_SECONDARYNAMENODE_USER="root" \
-    YARN_RESOURCEMANAGER_USER="root" \
-    YARN_NODEMANAGER_USER="root" \
+    HDFS_NAMENODE_USER=root \
+    HDFS_DATANODE_USER=root \
+    HDFS_SECONDARYNAMENODE_USER=root \
+    YARN_RESOURCEMANAGER_USER=root \
+    YARN_NODEMANAGER_USER=root \
     PATH=$PATH:/usr/local/hadoop/bin
 
 RUN sed -i "/^# export JAVA_HOME/ s:.*:export JAVA_HOME=${JAVA_HOME}\nexport HADOOP_HOME=${HADOOP_HOME}\n:" $HADOOP_HOME/etc/hadoop/hadoop-env.sh \
@@ -37,8 +37,23 @@ RUN sed -i "/^# export JAVA_HOME/ s:.*:export JAVA_HOME=${JAVA_HOME}\nexport HAD
     && chmod +x $HADOOP_HOME/etc/hadoop/hadoop-env.sh
 
 # Setup Hadoop in pseudo-distributed mode.
-ADD conf/* $HADOOP_HOME/etc/hadoop/
+ADD hdfs/* $HADOOP_HOME/etc/hadoop/
 RUN $HADOOP_HOME/bin/hdfs namenode -format
 
-ADD entrypoint.sh /usr/bin/entrypoint.sh
+# Setup proftpd.
+RUN set -x \
+    && apt-get update \
+    && apt-get install -y proftpd \
+    && apt-get clean
+
+ADD ftp/proftpd.conf /etc/proftpd/proftpd.conf
+
+RUN set -x \
+    && chown root:root /etc/proftpd/proftpd.conf \
+    && mkdir /ftp \
+    && PASSWORD=$(perl -e 'print crypt("default", "password")' $PASSWORD) \
+    && useradd --shell /bin/sh --create-home --password $PASSWORD ftp-user \
+    && chown -R ftp-user:ftp-user /ftp
+
+ADD bootstrap.sh /usr/sbin/bootstrap.sh
 ENTRYPOINT ["/bin/bash"]

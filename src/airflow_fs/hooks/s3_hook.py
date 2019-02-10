@@ -51,8 +51,6 @@ class S3Hook(FsHook):
         return self.get_conn().exists(file_path)
 
     def isdir(self, path):
-        path = _remove_s3_prefix(path)
-
         if "/" not in path:
             # Path looks like a bucket name.
             return True
@@ -81,23 +79,18 @@ class S3Hook(FsHook):
     # Overridden default implementations.
 
     def makedirs(self, dir_path, mode=0o755, exist_ok=True):
-        if not exist_ok and self.exists(dir_path):
-            self._raise_dir_exists(dir_path)
+        if self.exists(dir_path):
+            if not exist_ok:
+                self._raise_dir_exists(dir_path)
+        else:
+            self.get_conn().mkdir(dir_path)
 
     def walk(self, root):
-        root = _remove_s3_prefix(root)
         root = _remove_trailing_slash(root)
         yield from super().walk(root)
 
     def glob(self, pattern, only_files=True):
-        pattern = _remove_s3_prefix(pattern)
         return super().glob(pattern=pattern, only_files=only_files)
-
-
-def _remove_s3_prefix(path):
-    if path.startswith("s3://"):
-        path = path[len("s3://") :]
-    return path
 
 
 def _remove_trailing_slash(path):

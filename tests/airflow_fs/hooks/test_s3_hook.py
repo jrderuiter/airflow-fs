@@ -1,179 +1,178 @@
-import io
+import os
 import posixpath
-import unittest
-
-import mock
 
 import boto3
 from moto import mock_s3
+import pytest
+import s3fs
 
-from airflow_fs.hooks.s3_hook import S3Hook, s3fs
+from airflow_fs.hooks import S3Hook
+from airflow_fs.testing import copy_tree
 
 
-class TestS3Hook(unittest.TestCase):
-    """Tests for the S3Hook."""
+@pytest.fixture(scope="session")
+def client():
+    """S3 client to be used while testing."""
 
-    def setUp(self):
-        self._mock_s3 = mock_s3()
-        self._mock_s3.start()
+    os.environ["AWS_ACCESS_KEY_ID"] = "foo"
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "bar"
 
-        # Create bucket.
-        conn = boto3.resource('s3')
-        self._bucket = conn.create_bucket(Bucket='test_bucket')
+    return s3fs.S3FileSystem()
 
-        # Bootstrap some files.
-        buffer = io.BytesIO(b'Hello world!\n')
-        self._bucket.upload_fileobj(buffer, 'hello.txt')
 
-        buffer = io.BytesIO(b'Hello world!\n')
-        self._bucket.upload_fileobj(buffer, 'hello.csv')
+@pytest.fixture
+def remote_mock_dir(client, mock_data_dir, remote_temp_dir):
+    """A mock remote directory containing standard test data."""
 
-        buffer = io.BytesIO(b'Nested\n')
-        self._bucket.upload_fileobj(buffer, 'test/nested.txt')
+    copy_tree(
+        mock_data_dir, remote_temp_dir, mkdir_func=lambda x: x, cp_func=client.put
+    )
 
-    def tearDown(self):
-        self._mock_s3.stop()
+    return remote_temp_dir
 
-    @mock.patch.object(s3fs, 'S3FileSystem')
-    @mock.patch.object(S3Hook, 'get_connection')
-    def test_get_conn(self, conn_mock, s3fs_mock):
-        """Tests get_conn call without a connection."""
 
-        with S3Hook() as hook:
-            hook.get_conn()
+@pytest.fixture
+def remote_temp_dir(request, tmpdir):
+    """A mock remote temp directory."""
 
-        conn_mock.assert_not_called()
-        s3fs_mock.assert_called_once_with()
+    mock = mock_s3()
+    mock.start()
+    request.addfinalizer(lambda: mock.stop())
 
-    @mock.patch.object(s3fs, 'S3FileSystem')
-    @mock.patch.object(S3Hook, 'get_connection')
-    def test_get_conn_with_conn(self, conn_mock, s3fs_mock):
-        """Tests get_conn call with a connection."""
+    conn = boto3.resource("s3")
+    conn.create_bucket(Bucket="test_bucket")
 
-        conn_mock.return_value = mock.Mock(
-            login='s3_id',
-            password='s3_access_key',
-            extra_dejson={})
+    return "test_bucket" + str(tmpdir)
 
-        with S3Hook(conn_id='s3_default') as hook:
-            hook.get_conn()
 
-        s3fs_mock.assert_called_once_with(
-            key='s3_id',
-            secret='s3_access_key',
-            s3_additional_kwargs={})
+class TestS3Hook:
+    """Tests for the S3Hook class."""
 
-    @mock.patch.object(s3fs, 'S3FileSystem')
-    @mock.patch.object(S3Hook, 'get_connection')
-    def test_get_conn_with_encr(self, conn_mock, s3fs_mock):
-        """Tests get_conn call with an encrypted connection."""
+    def test_open_read(self, remote_mock_dir):
+        """Tests reading of a file using the `open` method."""
 
-        conn_mock.return_value = mock.Mock(
-            login='s3_id',
-            password='s3_access_key',
-            extra_dejson={'encryption': 'AES256'})
-
-        with S3Hook(conn_id='s3_default') as hook:
-            hook.get_conn()
-
-        conn_mock.assert_called_once_with('s3_default')
-
-        s3fs_mock.assert_called_once_with(
-            key='s3_id',
-            secret='s3_access_key',
-            s3_additional_kwargs={'ServerSideEncryption': 'AES256'})
-
-    def test_with(self):
-        """Tests if context manager closes the connection."""
-
-        with mock.patch.object(S3Hook, 'disconnect') as mock_disconnect:
-            with S3Hook() as hook:
-                pass
-
-        mock_disconnect.assert_called_once()
-        self.assertIsNone(hook._conn)
-
-    def test_open(self):
-        """Tests the open method."""
+        file_path = posixpath.join(remote_mock_dir, "test.txt")
 
         with S3Hook() as hook:
-            # Try to write file.
-            with hook.open('s3://test_bucket/new.txt', 'wb') as file_:
-                file_.write(b'Hello world!')
+            with hook.open(file_path) as file_:
+                content = file_.read()
 
-            # Check file exists.
-            self.assertTrue(hook.exists('s3://test_bucket/new.txt'))
+        assert content == b"Test file\n"
 
-            # Check reading file.
-            with hook.open('s3://test_bucket/new.txt', 'rb') as file_:
-                self.assertEqual(file_.read(), b'Hello world!')
+    def test_open_write(self, client, remote_temp_dir):
+        """Tests writing of a file using the `open` method."""
 
-    def test_exists(self):
-        """Tests the exists method."""
+        file_path = posixpath.join(remote_temp_dir, "test2.txt")
+        assert not client.exists(file_path)
 
         with S3Hook() as hook:
-            self.assertTrue(hook.exists('s3://test_bucket/hello.txt'))
-            self.assertFalse(hook.exists('s3://test_bucket/random.txt'))
+            with hook.open(file_path, "wb") as file_:
+                file_.write(b"Test file\n")
 
-    def test_isdir(self):
-        """Tests the isdir method."""
+        assert client.exists(file_path)
 
-        with S3Hook() as hook:
-            self.assertTrue(hook.isdir('s3://test_bucket/test'))
-            self.assertFalse(hook.isdir('s3://test_bucket/hello.csv'))
-
-    def test_mkdir(self):
-        """Tests the mkdir method (effectively a no-op)."""
+    def test_exists(self, remote_mock_dir):
+        """Tests the `exists` method."""
 
         with S3Hook() as hook:
-            hook.mkdir('s3://test_bucket/test/nested')
+            assert hook.exists(posixpath.join(remote_mock_dir, "subdir"))
+            assert hook.exists(posixpath.join(remote_mock_dir, "test.txt"))
+            assert not hook.exists(posixpath.join(remote_mock_dir, "non-existing.txt"))
 
-    def test_makedirs(self):
-        """Tests the makedirs method (effectively a no-op)."""
-
-        with S3Hook() as hook:
-            hook.makedirs('s3://test_bucket/test/nested')
-
-    def test_walk(self):
-        """Tests the walk method."""
-
-        expected = [('test_bucket', ['test'], ['hello.csv', 'hello.txt']),
-                    ('test_bucket/test', [], ['nested.txt'])]
+    def test_isdir(self, remote_mock_dir):
+        """Tests the `isdir` method."""
 
         with S3Hook() as hook:
-            result = list(hook.walk('s3://test_bucket'))
+            assert hook.isdir(posixpath.join(remote_mock_dir, "subdir"))
+            assert not hook.isdir(posixpath.join(remote_mock_dir, "test.txt"))
 
-        for res_item, exp_item in zip(result, expected):
-            self.assertEqual(res_item[0], exp_item[0])
-            self.assertEqual(sorted(res_item[1]), sorted(exp_item[1]))
-            self.assertEqual(sorted(res_item[2]), sorted(exp_item[2]))
-
-    def test_glob(self):
-        """Tests glob method."""
+    def test_listdir(self, remote_mock_dir):
+        """Tests the `listdir` method."""
 
         with S3Hook() as hook:
-            self.assertEqual(
-                list(hook.glob('s3://test_bucket/*.txt')),
-                ['test_bucket/hello.txt'])
+            assert set(hook.listdir(remote_mock_dir)) == {"test.txt", "subdir"}
 
-            self.assertEqual(list(hook.glob('s3://test_bucket/*.xml')), [])
+    def test_mkdir(self, client, remote_temp_dir):
+        """Tests the `mkdir` method with mode parameter."""
 
-    def test_rm(self):
-        """Tests rm method."""
-
-        with S3Hook() as hook:
-            self.assertTrue(hook.exists('s3://test_bucket/hello.txt'))
-            hook.rm('s3://test_bucket/hello.txt')
-            self.assertFalse(hook.exists('s3://test_bucket/hello.txt'))
-
-    def test_rmtree(self):
-        """Tests the rmtree method."""
+        dir_path = posixpath.join(remote_temp_dir, "subdir")
+        assert not client.exists(dir_path)
 
         with S3Hook() as hook:
-            self.assertTrue(hook.exists('s3://test_bucket/test/nested.txt'))
-            hook.rmtree('s3://test_bucket/test')
-            self.assertFalse(hook.exists('s3://test_bucket/test/nested.txt'))
+            hook.mkdir(dir_path, mode=0o750)
 
+        assert client.exists(dir_path)
 
-if __name__ == '__main__':
-    unittest.main()
+    def test_mkdir_exists(self, client, remote_temp_dir):
+        """Tests the `mkdir` method with the exists_ok parameter."""
+
+        dir_path = posixpath.join(remote_temp_dir, "subdir")
+        assert not client.exists(dir_path)
+
+        with S3Hook() as hook:
+            hook.mkdir(dir_path, exist_ok=False)
+
+            with pytest.raises(IOError):
+                hook.mkdir(dir_path, exist_ok=False)
+
+            hook.mkdir(dir_path, exist_ok=True)
+
+    def test_rm(self, client, remote_mock_dir):
+        """Tests the `rm` method."""
+
+        file_path = posixpath.join(remote_mock_dir, "test.txt")
+        assert client.exists(file_path)
+
+        with S3Hook() as hook:
+            hook.rm(file_path)
+
+        assert not client.exists(file_path)
+
+    def test_rmtree(self, client, remote_mock_dir):
+        """Tests the `rmtree` method."""
+
+        dir_path = posixpath.join(remote_mock_dir, "subdir")
+        assert client.exists(dir_path)
+
+        with S3Hook() as hook:
+            hook.rmtree(dir_path)
+
+        client.invalidate_cache(dir_path)
+        assert not client.exists(dir_path)
+
+    def test_makedirs(self, client, remote_temp_dir):
+        """Tests the `mkdir` method with mode parameter."""
+
+        dir_path = posixpath.join(remote_temp_dir, "some", "nested", "dir")
+
+        with S3Hook() as hook:
+            hook.makedirs(dir_path, mode=0o750)
+
+        assert client.exists(dir_path)
+
+    def test_makedirs_exists(self, client, remote_temp_dir):
+        """Tests the `mkdir` method with exists_ok parameter."""
+
+        dir_path = posixpath.join(remote_temp_dir, "some", "nested", "dir")
+
+        with S3Hook() as hook:
+            hook.makedirs(dir_path, exist_ok=False)
+
+            with pytest.raises(IOError):
+                hook.makedirs(dir_path, exist_ok=False)
+
+            client.invalidate_cache(dir_path)
+            hook.makedirs(dir_path, exist_ok=True)
+
+    def test_walk(self, client, remote_mock_dir):
+        """Tests the `walk` method."""
+
+        with S3Hook() as hook:
+            entries = list(hook.walk(remote_mock_dir))
+
+        assert entries[0] == (remote_mock_dir, ["subdir"], ["test.txt"])
+        assert entries[1] == (
+            posixpath.join(remote_mock_dir, "subdir"),
+            [],
+            ["nested.txt"],
+        )
