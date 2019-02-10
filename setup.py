@@ -20,7 +20,7 @@ dev_requirements = ["moto", "pylint", "sphinx", "sphinx_rtd_theme", "watchdog"]
 
 extra_requirements = {
     "ftp": ["ftputil"],
-    "hdfs": ["hdfs3"],
+    "hdfs": ["pyarrow"],
     "s3": ["s3fs"],
     "sftp": ["pysftp"],
     "dev": dev_requirements + test_requirements,

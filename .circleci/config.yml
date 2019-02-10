@@ -8,4 +8,7 @@ jobs:
       - checkout
       - run:
           name: Install package
-          command: 'SLUGIFY_USES_TEXT_UNIDECODE=yes pip install ~/circleci[hdfs,dev]'
+          command: 'SLUGIFY_USES_TEXT_UNIDECODE=yes pip install .[hdfs,dev]'
+      - run:
+          name: pytest
+          command: 'pytest tests -vvv'

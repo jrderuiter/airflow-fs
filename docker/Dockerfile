@@ -41,5 +41,4 @@ ADD conf/* $HADOOP_HOME/etc/hadoop/
 RUN $HADOOP_HOME/bin/hdfs namenode -format
 
 ADD entrypoint.sh /usr/bin/entrypoint.sh
-ENTRYPOINT ["/bin/bash", "entrypoint.sh"]
-CMD ["-bash"]
+ENTRYPOINT ["/bin/bash"]
