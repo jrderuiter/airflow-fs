@@ -1,0 +1,11 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/circleci
+    docker:
+      - image: jrderuiter/airflow-fs-ci
+    steps:
+      - checkout
+      - run:
+          name: Install package
+          command: 'SLUGIFY_USES_TEXT_UNIDECODE=yes pip install ~/circleci[hdfs,dev]'
