@@ -1,79 +1,191 @@
-"""Tests for the dataflows.hooks.fs.ftp_hook module."""
+import ftplib
+import unittest
 
-import pytest
+import mock
 
-from airflow_fs.hooks.ftp_hook import FtpHook
-
-# pylint: disable=redefined-outer-name,no-self-use
+from airflow_fs.hooks.ftp_hook import FtpHook, ftputil, ftp_session
 
 
-class TestFtpHook:
+class TestFtpHook(unittest.TestCase):
     """
     Tests for the FtpHook class.
 
-    Note that the get_conn method is mocked in most of these tests
-    to avoid the requirement of having a local FTP instance for testing.
+    Note that the FTP session is mocked in most of these tests to avoid the
+    requirement of having a local FTP server for testing.
     """
 
-    def test_with(self, mocker):
-        """Tests if context manager closes the connection."""
+    def setUp(self):
+        self._mock_fs = mock.Mock()
 
-        with FtpHook(conn_id="test") as hook:
-            mock = mocker.patch.object(hook, "_conn")
+        self._mocked_hook = FtpHook(conn_id='ftp_default')
+        self._mocked_hook._conn = self._mock_fs
 
-        assert mock.close.call_count == 1
+    @mock.patch.object(ftp_session, 'session_factory')
+    @mock.patch.object(ftputil, 'FTPHost')
+    @mock.patch.object(FtpHook, 'get_connection')
+    def test_get_conn(self, conn_mock, host_mock, session_mock):
+        """Tests get_conn call with unsecured connection."""
 
-    def test_open(self, mocker):
-        """Tests for the `open` method."""
+        conn_mock.return_value = mock.Mock(
+            host='example',
+            login='user',
+            password='password',
+            port=2121,
+            extra_dejson={'tls': False})
 
-        mock = mocker.patch.object(FtpHook, "get_conn")
+        with FtpHook(conn_id='ftp_default') as hook:
+            hook.get_conn()
 
-        with FtpHook(conn_id="test") as hook:
-            hook.open("test.txt", mode="rb")
+        conn_mock.assert_called_once_with('ftp_default')
 
-        mock.return_value.open.assert_called_once_with("test.txt", mode="rb")
+        host_mock.assert_called_once_with(
+            'example',
+            'user',
+            'password',
+            session_factory=mock.ANY)
 
-    def test_exists(self, mocker):
-        """Tests for the `exists` method."""
+        session_mock.assert_called_once_with(
+            base_class=ftplib.FTP,
+            port=2121,
+            encrypt_data_channel=False)
 
-        mock = mocker.patch.object(FtpHook, "get_conn")
+    @mock.patch.object(ftp_session, 'session_factory')
+    @mock.patch.object(ftputil, 'FTPHost')
+    @mock.patch.object(FtpHook, 'get_connection')
+    def test_get_conn_tls(self, conn_mock, host_mock, session_mock):
+        """Tests get_conn call with a secured connection."""
 
-        with FtpHook(conn_id="test") as hook:
-            hook.exists("test.txt")
+        conn_mock.return_value = mock.Mock(
+            host='example',
+            login='user',
+            password='password',
+            port=2121,
+            extra_dejson={'tls': True})
 
-        mock.return_value.path.exists.assert_called_once_with("test.txt")
+        with FtpHook(conn_id='ftp_default') as hook:
+            hook.get_conn()
 
-    def test_makedirs(self, mocker):
-        """Tests for the `makedirs` method."""
+        conn_mock.assert_called_once_with('ftp_default')
 
-        mock = mocker.patch.object(FtpHook, "get_conn")
-        mock.return_value.exists.return_value = False
+        host_mock.assert_called_once_with(
+            'example',
+            'user',
+            'password',
+            session_factory=mock.ANY)
 
-        with FtpHook(conn_id="test") as hook:
-            hook.makedirs("path/to/dir")
+        session_mock.assert_called_once_with(
+            base_class=ftplib.FTP_TLS,
+            port=2121,
+            encrypt_data_channel=True)
 
-        mock.return_value.makedirs.assert_called_once_with("path/to/dir")
+    def test_open(self):
+        """Tests the `open` method."""
 
-    def test_makedirs_exists(self, mocker):
-        """Tests for the `makedirs` method with existing path."""
+        with self._mocked_hook as hook:
+            hook.open('test.txt', mode='rb')
 
-        mock = mocker.patch.object(FtpHook, "get_conn")
-        mock.return_value.exists.return_value = True
+        self._mock_fs.open.assert_called_once_with('test.txt', mode='rb')
 
-        with FtpHook(conn_id="test") as hook:
-            with pytest.raises(ValueError):
-                hook.makedirs("path/to/dir", exist_ok=False)
+    def test_exists(self):
+        """Tests the `exists` method."""
 
-            hook.makedirs("path/to/dir", exist_ok=True)
+        with self._mocked_hook as hook:
+            hook.exists('test.txt')
 
-    def test_rmtree(self, mocker):
-        """Tests for the `rmtree` method."""
+        self._mock_fs.path.exists.assert_called_once_with('test.txt')
 
-        mock = mocker.patch.object(FtpHook, "get_conn")
+    def test_isdir(self):
+        """Tests the `isdir` method."""
 
-        with FtpHook(conn_id="test") as hook:
-            hook.rmtree("test_dir")
+        with self._mocked_hook as hook:
+            hook.isdir('test.txt')
 
-        mock.return_value.rmtree.assert_called_once_with(
-            "test_dir", ignore_errors=False
-        )
+        self._mock_fs.isdir.assert_called_once_with('test.txt')
+
+    def test_makedir(self):
+        """Tests the `makedir` method with a non-existing dir."""
+
+        self._mock_fs.exists.return_value = False
+
+        with self._mocked_hook as hook:
+            hook.makedir('path/to/dir', mode=0o755)
+
+        self._mock_fs.mkdir.assert_called_once_with('path/to/dir', mode=0o755)
+
+    def test_makedir_existing(self):
+        """Tests the `makedir` method with an existing dir
+           and exist_ok = False.
+        """
+
+        self._mock_fs.exists.return_value = True
+
+        with self._mocked_hook as hook:
+            with self.assertRaises(IOError):
+                hook.makedir('path/to/dir', mode=0o755, exist_ok=False)
+
+    def test_makedir_existing_ok(self):
+        """Tests the `makedir` method with an existing dir
+           and exist_ok = True.
+        """
+
+        self._mock_fs.exists.return_value = True
+
+        with self._mocked_hook as hook:
+            hook.makedir('path/to/dir', mode=0o755, exist_ok=True)
+
+        self._mock_fs.chmod.assert_not_called()
+
+    def test_makedirs(self):
+        """Tests the `makedirs` method with a non-existing dir."""
+
+        self._mock_fs.exists.return_value = False
+
+        with self._mocked_hook as hook:
+            hook.makedirs('path/to/dir', mode=0o755)
+
+        self._mock_fs.makedirs.assert_called_once_with(
+            'path/to/dir', mode=0o755)
+
+    def test_makedirs_existing(self):
+        """Tests the `makedirs` method with an existing dir
+           and exist_ok = False.
+        """
+
+        self._mock_fs.exists.return_value = True
+
+        with self._mocked_hook as hook:
+            with self.assertRaises(IOError):
+                hook.makedirs('path/to/dir', mode=0o755, exist_ok=False)
+
+        self._mock_fs.makedirs.assert_not_called()
+
+    def test_makedirs_existing_ok(self):
+        """Tests the `makedir` method with an existing dir
+           and exist_ok = True.
+        """
+
+        self._mock_fs.exists.return_value = True
+
+        with self._mocked_hook as hook:
+            hook.makedirs('path/to/dir', mode=0o755, exist_ok=True)
+
+    def test_rm(self):
+        """Tests the `rm` method."""
+
+        with self._mocked_hook as hook:
+            hook.rm('test_dir')
+
+        self._mock_fs.remove.assert_called_once_with('test_dir')
+
+    def test_rmtree(self):
+        """Tests the `rmtree` method."""
+
+        with self._mocked_hook as hook:
+            hook.rmtree('test_dir')
+
+        self._mock_fs.rmtree.assert_called_once_with(
+            'test_dir', ignore_errors=False)
+
+
+if __name__ == '__main__':
+    unittest.main()

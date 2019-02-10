@@ -1,7 +1,14 @@
 API
 ===
 
-.. toctree::
-   :maxdepth: 4
+Hooks
+-----
 
-   airflow_fs
+.. automodule:: airflow_fs.hooks
+    :members:
+
+Operators
+---------
+
+.. automodule:: airflow_fs.operators
+    :members:

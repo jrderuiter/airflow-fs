@@ -16,13 +16,14 @@ requirements = ["apache-airflow"]
 setup_requirements = ["pytest-runner", "setuptools_scm"]
 
 test_requirements = ["pytest", "pytest-mock", "pytest-cov"]
+dev_requirements = ["moto", "pylint", "sphinx", "sphinx_rtd_theme", "watchdog"]
 
 extra_requirements = {
     "ftp": ["ftputil"],
     "hdfs": ["hdfs3"],
     "s3": ["s3fs"],
     "sftp": ["pysftp"],
-    "dev": ["moto", "pylint", "sphinx", "sphinx_rtd_theme"] + test_requirements,
+    "dev": dev_requirements + test_requirements,
 }
 
 setuptools.setup(

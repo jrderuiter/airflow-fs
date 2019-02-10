@@ -1,7 +1,29 @@
+# -*- coding: utf-8 -*-
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+
+from builtins import super
+
 try:
-    import hdfs3
+    from pyarrow import hdfs
 except ImportError:
-    hdfs3 = None
+    hdfs = None
 
 from . import FsHook
 
@@ -15,34 +37,28 @@ class HdfsHook(FsHook):
         self._conn = None
 
     def get_conn(self):
-        if hdfs3 is None:
-            raise ImportError("hfds3 must be installed to use the HdfsHook")
+        if hdfs is None:
+            raise ImportError("hdfs3 must be installed to use the HdfsHook")
 
         if self._conn is None:
             if self._conn_id is None:
-                self._conn = hdfs3.HDFileSystem()
+                self._conn = hdfs.connect()
             else:
                 config = self.get_connection(self._conn_id)
                 config_extra = config.extra_dejson
 
-                # Extract hadoop parameters from extra.
-                pars = config_extra.get("pars", {})
-
-                # Collect extra parameters to pass to kwargs.
-                extra_kws = {}
-                if config.login is not None:
-                    extra_kws["user"] = config.login
-
                 # Build connection.
-                self._conn = hdfs3.HDFileSystem(
-                    host=config.host, port=config.port, pars=pars, **extra_kws
+                self._conn = hdfs.connect(
+                    host=config.host or "default",
+                    port=config.port or 0,
+                    user=config.login,
+                    driver=config_extra.get("driver", "libhdfs"),
+                    extra_conf=config_extra.get("extra_conf", None),
                 )
 
         return self._conn
 
     def disconnect(self):
-        if self._conn is not None:
-            self._conn.disconnect()
         self._conn = None
 
     def open(self, file_path, mode="rb"):
@@ -51,16 +67,52 @@ class HdfsHook(FsHook):
     def exists(self, file_path):
         return self.get_conn().exists(file_path)
 
-    def makedirs(self, dir_path, mode=0o755, exist_ok=True):
-        if not exist_ok and self.exists(dir_path):
-            raise ValueError("Directory already exists")
-        self.get_conn().makedirs(dir_path, mode=mode)
+    def isdir(self, path):
+        info = self.get_conn().info(path)
+        return info["kind"] == "directory"
 
-    def glob(self, pattern):
-        return self.get_conn().glob(pattern)
+    def listdir(self, dir_path):
+        return [
+            self._strip_prefix(path_, parent=dir_path)
+            for path_ in self.get_conn().ls(dir_path)
+        ]
 
-    def remove(self, file_path):
-        self.get_conn().rm(file_path, recursive=False)
+    def mkdir(self, dir_path, mode=0e755, exist_ok=True):
+        self.makedirs(dir_path, mode=mode, exist_ok=exist_ok)
+
+    @staticmethod
+    def _strip_prefix(path_, parent="/"):
+        """Strips 'file:' prefix and (optional) parent dir from file path."""
+
+        stripped = path_.split(":")[-1]
+
+        if not parent.endswith("/"):
+            parent = parent + "/"
+
+        if stripped.startswith(parent):
+            stripped = stripped[len(parent) :]
+
+        return stripped
+
+    def rm(self, file_path):
+        self.get_conn().delete(file_path, recursive=False)
 
     def rmtree(self, dir_path):
-        self.get_conn().rm(dir_path, recursive=True)
+        self.get_conn().delete(dir_path, recursive=True)
+
+    # Overridden default implementations.
+
+    def makedirs(self, dir_path, mode=0o755, exist_ok=True):
+        conn = self.get_conn()
+
+        if conn.exists(dir_path):
+            if not exist_ok:
+                self._raise_dir_exists(dir_path)
+        else:
+            # mkdir is recursive by default.
+            conn.mkdir(dir_path)
+            conn.chmod(dir_path, mode=mode)
+
+    def walk(self, root):
+        for tup in self.get_conn().walk(root):
+            yield tup

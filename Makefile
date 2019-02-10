@@ -62,10 +62,7 @@ coverage: ## check code coverage quickly with the default Python
 	coverage html
 	$(BROWSER) htmlcov/index.html
 
-docs: ## generate Sphinx HTML documentation, including API docs
-	rm -f docs/airflow_fs*.rst docs/modules.rst
-	sphinx-apidoc -f -o docs/ src/airflow_fs
-	rm -f docs/modules.rst
+docs: ## generate Sphinx HTML documentation
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 	$(BROWSER) docs/_build/html/index.html

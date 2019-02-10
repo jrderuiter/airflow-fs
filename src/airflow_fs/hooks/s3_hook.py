@@ -1,40 +1,44 @@
+from builtins import super
+import posixpath
+
+try:
+    import s3fs
+except ImportError:
+    s3fs = None
+
 from . import FsHook
 
 
 class S3Hook(FsHook):
     """Hook for interacting with files in S3."""
 
-    def __init__(self, conn_id=None, **kwargs):
+    def __init__(self, conn_id=None):
         super().__init__()
         self._conn_id = conn_id
         self._conn = None
-        self._kwargs = kwargs
 
     def get_conn(self):
-        try:
-            import s3fs
-        except ImportError:
-            raise ImportError("s3fs must be installed to use the S3Hook") from None
+        if s3fs is None:
+            raise ImportError("s3fs must be installed to use the S3Hook")
 
         if self._conn is None:
             if self._conn_id is None:
-                self._conn = s3fs.S3FileSystem(**self._kwargs)
+                self._conn = s3fs.S3FileSystem()
             else:
                 config = self.get_connection(self._conn_id)
 
-                if config.extra_dejson.get("encryption", False):
-                    if self._kwargs.get("s3_additional_kwargs"):
-                        self._kwargs["s3_additional_kwargs"][
-                            "ServerSideEncryption"
-                        ] = "AES256"
-                    else:
-                        self._kwargs["s3_additional_kwargs"] = {
-                            "ServerSideEncryption": "AES256"
-                        }
+                extra_kwargs = {}
+                if "encryption" in config.extra_dejson:
+                    extra_kwargs["ServerSideEncryption"] = config.extra_dejson[
+                        "encryption"
+                    ]
 
                 self._conn = s3fs.S3FileSystem(
-                    key=config.login, secret=config.password, **self._kwargs
+                    key=config.login,
+                    secret=config.password,
+                    s3_additional_kwargs=extra_kwargs,
                 )
+
         return self._conn
 
     def disconnect(self):
@@ -46,18 +50,57 @@ class S3Hook(FsHook):
     def exists(self, file_path):
         return self.get_conn().exists(file_path)
 
-    def makedirs(self, dir_path, mode=0o755, exist_ok=True):
-        if not exist_ok and self.exists(dir_path):
-            raise ValueError("Directory already exists")
+    def isdir(self, path):
+        path = _remove_s3_prefix(path)
 
-    def glob(self, pattern):
-        try:
-            return self.get_conn().glob(pattern)
-        except FileNotFoundError:
-            return []
+        if "/" not in path:
+            # Path looks like a bucket name.
+            return True
 
-    def remove(self, file_path):
+        parent_dir = posixpath.dirname(path)
+
+        for child in self.get_conn().ls(parent_dir, detail=True):
+            if child["Key"] == path and child["StorageClass"] == "DIRECTORY":
+                return True
+
+        return False
+
+    def mkdir(self, dir_path, mode=0o755, exist_ok=True):
+        self.makedirs(dir_path, mode=mode, exist_ok=exist_ok)
+
+    def listdir(self, dir_path):
+        return [posixpath.relpath(fp, start=dir_path)
+                for fp in self.get_conn().ls(dir_path, details=False)]
+
+    def rm(self, file_path):
         self.get_conn().rm(file_path, recursive=False)
 
     def rmtree(self, dir_path):
         self.get_conn().rm(dir_path, recursive=True)
+
+    # Overridden default implementations.
+
+    def makedirs(self, dir_path, mode=0o755, exist_ok=True):
+        if not exist_ok and self.exists(dir_path):
+            self._raise_dir_exists(dir_path)
+
+    def walk(self, root):
+        root = _remove_s3_prefix(root)
+        root = _remove_trailing_slash(root)
+        yield from super().walk(root)
+
+    def glob(self, pattern, only_files=True):
+        pattern = _remove_s3_prefix(pattern)
+        return super().glob(pattern=pattern, only_files=only_files)
+
+
+def _remove_s3_prefix(path):
+    if path.startswith("s3://"):
+        path = path[len("s3://") :]
+    return path
+
+
+def _remove_trailing_slash(path):
+    if path.endswith("/"):
+        return path[:-1]
+    return path

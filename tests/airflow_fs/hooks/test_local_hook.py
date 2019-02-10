@@ -1,151 +1,162 @@
-"""Tests for the dataflows.hooks.fs.local_hook module."""
+from builtins import open
 
-import io
 import os
 from os import path
-
-import pytest
+import unittest
+import shutil
+import tempfile
 
 from airflow_fs.hooks.local_hook import LocalHook
 
-# pylint: disable=redefined-outer-name,no-self-use
 
+class TestLocalHook(unittest.TestCase):
+    """Tests for the LocalHook."""
 
-@pytest.fixture
-def test_dir(tmpdir):
-    """Fixture of a test directory, containing various test files."""
+    def setUp(self):
+        self._tmp_dir = tempfile.mkdtemp()
 
-    # Creates following directory structure:
-    # - files
-    #   - hello.txt
-    #   - nested
-    #     - nested.txt
-    #   - nested_empty
+        # Bootstrap some files.
+        with open(path.join(self._tmp_dir, 'hello.txt'), 'wb') as file_:
+            file_.write(b'Hello world!\n')
 
-    # Create base dir.
-    base_dir = path.join(str(tmpdir), "files")
-    os.makedirs(base_dir)
+        with open(path.join(self._tmp_dir, 'hello.csv'), 'wb') as file_:
+            file_.write(b'Hello world!\n')
 
-    with open(path.join(base_dir, "hello.txt"), "wb") as file_:
-        file_.write(b"Hello world!\n")
+        nested_dir = path.join(self._tmp_dir, 'test')
+        os.mkdir(nested_dir)
 
-    # Create nested dir.
-    nested_dir = path.join(base_dir, "nested")
-    os.makedirs(nested_dir)
+        with open(path.join(nested_dir, 'nested.txt'), 'wb') as file_:
+            file_.write(b'Nested\n')
 
-    with open(path.join(nested_dir, "nested.txt"), "wb") as file_:
-        file_.write(b"Nested!\n")
+    def tearDown(self):
+        shutil.rmtree(self._tmp_dir)
 
-    # Create empty dir.
-    os.makedirs(path.join(base_dir, "nested_empty"))
-
-    return str(tmpdir)
-
-
-class TestLocalHook:
-    """Tests for LocalHook."""
-
-    def test_with_disconnect(self, mocker):
-        """Tests if context manager disconnects."""
-
-        mock_disconnect = mocker.patch.object(LocalHook, "disconnect")
-
-        with LocalHook() as _:
-            pass
-
-        assert mock_disconnect.call_count == 1
-
-    def test_open(self, test_dir):
-        """Tests open function."""
+    def test_open(self):
+        """Tests the open method."""
 
         with LocalHook() as hook:
-            # Test read.
-            read_path = path.join(test_dir, "files", "hello.txt")
-            with hook.open(read_path, "rb") as file_:
-                assert file_.read() == b"Hello world!\n"
+            # Try to write file.
+            new_path = path.join(self._tmp_dir, 'new.txt')
+            self.assertFalse(hook.exists(new_path))
 
-            # Test write.
-            write_path = path.join(test_dir, "new.txt")
-            with hook.open(write_path, "wb") as file_:
-                file_.write(b"New!\n")
+            with hook.open(new_path, 'wb') as file_:
+                file_.write(b'Hello world!')
 
-            assert path.exists(write_path)
+            # Check file exists.
+            self.assertTrue(hook.exists(new_path))
 
-    def test_exists(self, test_dir):
-        """Tests exists method."""
+            # Check reading file.
+            with hook.open(new_path, 'rb') as file_:
+                self.assertEqual(file_.read(), b'Hello world!')
 
-        with LocalHook() as hook:
-            assert not hook.exists(path.join(test_dir, "test.txt"))
-            assert hook.exists(path.join(test_dir, "files", "hello.txt"))
-
-    def test_makedirs(self, tmpdir):
-        """Tests creation of nested directory with makedirs."""
+    def test_exists(self):
+        """Tests the exists method."""
 
         with LocalHook() as hook:
-            # Tests creation of non-existing directory.
-            dir_path = path.join(str(tmpdir), "test", "test2")
+            self.assertTrue(
+                hook.exists(path.join(self._tmp_dir, 'hello.txt')))
+            self.assertFalse(
+                hook.exists(path.join(self._tmp_dir, 'random.txt')))
+
+    def test_isdir(self):
+        """Tests the isdir method."""
+
+        with LocalHook() as hook:
+            self.assertTrue(hook.isdir(path.join(self._tmp_dir, 'test')))
+            self.assertFalse(hook.isdir(path.join(self._tmp_dir, 'test.txt')))
+
+    def test_makedir(self):
+        """Tests the makedir method."""
+
+        with LocalHook() as hook:
+            # Test non-existing directory.
+            dir_path = path.join(self._tmp_dir, 'new')
+            self.assertFalse(hook.exists(dir_path))
+            hook.makedir(dir_path)
+            self.assertTrue(hook.exists(dir_path))
+
+            # Test existing directory with exist_ok = True.
+            dir_path = path.join(self._tmp_dir, 'test')
+            self.assertTrue(hook.exists(dir_path))
+            hook.makedir(dir_path, exist_ok=True)
+
+            # Test existing directory with exist_ok = False.
+            with self.assertRaises(IOError):
+                hook.makedir(dir_path, exist_ok=False)
+
+            # Test nested directory (should fail).
+            dir_path = path.join(self._tmp_dir, 'new2', 'nested')
+            with self.assertRaises(IOError):
+                hook.makedir(dir_path)
+
+    def test_makedirs(self):
+        """Tests the makedirs method."""
+
+        with LocalHook() as hook:
+            # Test non-existing directory.
+            dir_path = path.join(self._tmp_dir, 'new')
+            self.assertFalse(hook.exists(dir_path))
             hook.makedirs(dir_path)
+            self.assertTrue(hook.exists(dir_path))
 
-            assert path.exists(dir_path)
-
-            # Tests error on existing.
-            with pytest.raises(OSError):
-                hook.makedirs(dir_path, exist_ok=False)
-
-            # Tests with exist_ok = True.
+            # Test existing directory with exist_ok = True.
+            dir_path = path.join(self._tmp_dir, 'test')
+            self.assertTrue(hook.exists(dir_path))
             hook.makedirs(dir_path, exist_ok=True)
 
-    def test_rmtree(self, test_dir):
-        """Tests rmtree method."""
+            # Test existing directory with exist_ok = False.
+            with self.assertRaises(IOError):
+                hook.makedirs(dir_path, exist_ok=False)
 
-        dir_path = path.join(test_dir, "files")
-        assert path.exists(dir_path)
+            # Test nested directory (should fail).
+            dir_path = path.join(self._tmp_dir, 'new2', 'nested')
+            hook.makedirs(dir_path)
+            self.assertTrue(hook.exists(dir_path))
 
-        # Delete directory.
+    def test_walk(self):
+        """Tests the walk method."""
+
+        expected = [(self._tmp_dir, ['test'], ['hello.csv', 'hello.txt']),
+                    (path.join(self._tmp_dir, 'test'), [], ['nested.txt'])]
+
         with LocalHook() as hook:
+            result = list(hook.walk(self._tmp_dir))
+
+        for res_item, exp_item in zip(result, expected):
+            self.assertEqual(res_item[0], exp_item[0])
+            self.assertEqual(sorted(res_item[1]), sorted(exp_item[1]))
+            self.assertEqual(sorted(res_item[2]), sorted(exp_item[2]))
+
+    def test_glob(self):
+        """Tests glob method."""
+
+        with LocalHook() as hook:
+            self.assertEqual(
+                list(hook.glob(path.join(self._tmp_dir, '*.txt'))),
+                [path.join(self._tmp_dir, 'hello.txt')])
+
+            self.assertEqual(list(hook.glob(path.join(self._tmp_dir, '*.xml'))), [])
+
+    def test_rm(self):
+        """Tests rm method."""
+
+        with LocalHook() as hook:
+            file_path = path.join(self._tmp_dir, 'hello.txt')
+            self.assertTrue(hook.exists(file_path))
+
+            hook.rm(file_path)
+            self.assertFalse(hook.exists(file_path))
+
+    def test_rmtree(self):
+        """Tests the rmtree method."""
+
+        with LocalHook() as hook:
+            dir_path = path.join(self._tmp_dir, 'test')
+            self.assertTrue(hook.exists(dir_path))
+
             hook.rmtree(dir_path)
+            self.assertFalse(hook.exists(dir_path))
 
-        assert not path.exists(dir_path)
 
-    def test_copy_file(self, test_dir):
-        """Tests copy_file method."""
-
-        src_path = path.join(test_dir, "files", "hello.txt")
-        dest_path = path.join(test_dir, "hello2.txt")
-
-        with LocalHook() as hook:
-            hook.copy_file(src_path, dest_path)
-
-        # Check copied file contents.
-        with open(dest_path, "rb") as file_:
-            assert file_.read() == b"Hello world!\n"
-
-    def test_copy_file_obj(self, tmpdir):
-        """Tests copy_file_obj method."""
-
-        # Copy buffer to dest.
-        buffer = io.BytesIO(b"Hello world!\n")
-        dest_path = path.join(str(tmpdir), "test2.txt")
-
-        with LocalHook() as hook:
-            hook.copy_fileobj(buffer, dest_path)
-
-        # Check copied file contents.
-        with open(dest_path, "rb") as file_:
-            assert file_.read() == b"Hello world!\n"
-
-    def test_copy_dir(self, test_dir):
-        """Tests copy_dir method."""
-
-        # Copy directory.
-        src_dir = path.join(test_dir, "files")
-        dest_dir = path.join(test_dir, "files2")
-
-        with LocalHook() as hook:
-            hook.copy_dir(src_dir, dest_dir)
-
-        # Check copied files.
-        assert path.exists(path.join(dest_dir, "nested"))
-        assert path.exists(path.join(dest_dir, "nested_empty"))
-        assert path.exists(path.join(dest_dir, "nested", "nested.txt"))
-        assert path.exists(path.join(dest_dir, "hello.txt"))
+if __name__ == '__main__':
+    unittest.main()

@@ -1,75 +1,169 @@
-"""Tests for the dataflows.hooks.fs.hdfs3_hook module."""
+from os import path, walk
+import posixpath
+from pyarrow import hdfs
 
-from airflow_fs.hooks.hdfs_hook import HdfsHook, hdfs3
+import pytest
 
-# pylint: disable=redefined-outer-name,no-self-use
+from airflow_fs.hooks import HdfsHook
 
 
-class TestHdfs3Hook:
-    """
-    Tests for the Hdfs3Hook class.
+@pytest.fixture(scope="session")
+def mock_data_dir():
+    """Directory containing test data files."""
+    return path.join(path.dirname(__file__), "..", "data")
 
-    Note that the HDFileSystem class is mocked in most of these tests
-    to avoid the requirement of having a local HDFS instance for testing.
-    """
 
-    def test_with(self, mocker):
-        """Tests if context manager closes the connection."""
+@pytest.fixture(scope="session")
+def hdfs_client():
+    """Hdfs client to be used while testing."""
+    return hdfs.connect()
+
+
+@pytest.fixture
+def hdfs_dir(mock_data_dir, hdfs_client, tmpdir):
+    """Creates a mock hdfs directory containing the standard test data."""
+
+    src_base_dir, dest_base_dir = mock_data_dir, tmpdir
+
+    for root, dirs, files in walk(src_base_dir):
+        rel_root = path.relpath(root, src_base_dir)
+
+        dest_root = posixpath.join(dest_base_dir, rel_root)
+        hdfs_client.mkdir(dest_root)
+
+        for file_name in files:
+            src_path = posixpath.join(src_base_dir, rel_root, file_name)
+            dest_path = posixpath.join(dest_base_dir, rel_root, file_name)
+            with open(src_path, "rb") as file_:
+                hdfs_client.upload(dest_path, file_)
+
+    # request.addfinalizer(lambda: hdfs_client.rm(str(dest_base_dir), recursive=True))
+
+    return str(dest_base_dir)
+
+
+class TestHdfsHook:
+    """Tests for the HdfsHook class."""
+
+    def test_open_read(self, hdfs_dir):
+        """Tests reading of a file using the `open` method."""
+
+        file_path = posixpath.join(hdfs_dir, "test.txt")
+        with HdfsHook() as hook:
+            with hook.open(file_path) as file_:
+                content = file_.read()
+            assert content == b"Test file\n"
+
+    def test_open_write(self, hdfs_client, tmpdir):
+        """Tests writing of a file using the `open` method."""
+
+        file_path = posixpath.join(tmpdir, "test2.txt")
+        assert not hdfs_client.exists(file_path)
 
         with HdfsHook() as hook:
-            mock = mocker.patch.object(hook, "_conn")
+            with hook.open(file_path, "wb") as file_:
+                file_.write(b"Test file\n")
 
-        assert mock.disconnect.call_count == 1
+        assert hdfs_client.exists(file_path)
 
-    def test_open(self, mocker):
-        """Tests for the `open` method."""
-
-        mock = mocker.patch.object(hdfs3, "HDFileSystem")
-
-        with HdfsHook() as hook:
-            hook.open("test.txt", mode="rb")
-
-        mock.return_value.open.assert_called_once_with("test.txt", mode="rb")
-
-    def test_exists(self, mocker):
-        """Tests for the `exists` method."""
-
-        mock = mocker.patch.object(hdfs3, "HDFileSystem")
+    def test_exists(self, hdfs_dir):
+        """Tests the `exists` method."""
 
         with HdfsHook() as hook:
-            hook.exists("test.txt")
+            assert hook.exists(posixpath.join(hdfs_dir, "subdir"))
+            assert hook.exists(posixpath.join(hdfs_dir, "test.txt"))
+            assert not hook.exists(posixpath.join(hdfs_dir, "non-existing.txt"))
 
-        mock.return_value.exists.assert_called_once_with("test.txt")
-
-    def test_makedirs(self, mocker):
-        """Tests for the `makedirs` method."""
-
-        mock = mocker.patch.object(hdfs3, "HDFileSystem")
-        mock.return_value.exists.return_value = False
+    def test_isdir(self, hdfs_dir):
+        """Tests the `isdir` method."""
 
         with HdfsHook() as hook:
-            hook.makedirs("path/to/dir")
+            assert hook.isdir(posixpath.join(hdfs_dir, "subdir"))
+            assert not hook.isdir(posixpath.join(hdfs_dir, "test.txt"))
 
-        mkdirs = mock.return_value.makedirs
-        assert mkdirs.call_count == 1
-        assert mkdirs.call_args_list[0][0][0] == "path/to/dir"
-
-    def test_glob(self, mocker):
-        """Tests for the `glob` method."""
-
-        mock = mocker.patch.object(hdfs3, "HDFileSystem")
+    def test_listdir(self, hdfs_dir):
+        """Tests the `listdir` method."""
 
         with HdfsHook() as hook:
-            hook.glob("*.txt")
+            assert set(hook.listdir(hdfs_dir)) == {"test.txt", "subdir"}
 
-        mock.return_value.glob.assert_called_once_with("*.txt")
+    def test_mkdir(self, hdfs_client, tmpdir):
+        """Tests the `mkdir` method with mode parameter."""
 
-    def test_rmtree(self, mocker):
-        """Tests for the `rmtree` method."""
-
-        mock = mocker.patch.object(hdfs3, "HDFileSystem")
+        dir_path = posixpath.join(tmpdir, "subdir")
+        assert not hdfs_client.exists(dir_path)
 
         with HdfsHook() as hook:
-            hook.rmtree("test_dir")
+            hook.mkdir(dir_path, mode=0o750)
 
-        mock.return_value.rm.assert_called_once_with("test_dir", recursive=True)
+        assert hdfs_client.exists(dir_path)
+        assert hdfs_client.info(dir_path)["permissions"] == 0o750
+
+    def test_mkdir_exists(self, hdfs_client, tmpdir):
+        """Tests the `mkdir` method with the exists_ok parameter."""
+
+        dir_path = posixpath.join(tmpdir, "subdir")
+        assert not hdfs_client.exists(dir_path)
+
+        with HdfsHook() as hook:
+            hook.mkdir(dir_path, exist_ok=False)
+
+            with pytest.raises(IOError):
+                hook.mkdir(dir_path, exist_ok=False)
+
+            hook.mkdir(dir_path, exist_ok=True)
+
+    def test_rm(self, hdfs_client, hdfs_dir):
+        """Tests the `rm` method."""
+
+        file_path = posixpath.join(hdfs_dir, "test.txt")
+        assert hdfs_client.exists(file_path)
+
+        with HdfsHook() as hook:
+            hook.rm(file_path)
+
+        assert not hdfs_client.exists(file_path)
+
+    def test_rmtree(self, hdfs_client, hdfs_dir):
+        """Tests the `rmtree` method."""
+
+        dir_path = posixpath.join(hdfs_dir, "subdir")
+        assert hdfs_client.exists(dir_path)
+
+        with HdfsHook() as hook:
+            hook.rmtree(dir_path)
+
+        assert not hdfs_client.exists(dir_path)
+
+    def test_makedirs(self, hdfs_client, tmpdir):
+        """Tests the `mkdir` method with mode parameter."""
+
+        dir_path = posixpath.join(tmpdir, "some", "nested", "dir")
+
+        with HdfsHook() as hook:
+            hook.makedirs(dir_path, mode=0o750)
+
+        assert hdfs_client.exists(dir_path)
+        assert hdfs_client.info(dir_path)["permissions"] == 0o750
+
+    def test_makedirs_exists(self, hdfs_client, tmpdir):
+        """Tests the `mkdir` method with exists_ok parameter."""
+
+        dir_path = posixpath.join(tmpdir, "some", "nested", "dir")
+
+        with HdfsHook() as hook:
+            hook.makedirs(dir_path, exist_ok=False)
+
+            with pytest.raises(IOError):
+                hook.makedirs(dir_path, exist_ok=False)
+
+            hook.makedirs(dir_path, exist_ok=True)
+
+    def test_walk(self, hdfs_client, hdfs_dir):
+        """Tests the `walk` method."""
+
+        with HdfsHook() as hook:
+            entries = list(hook.walk(hdfs_dir))
+
+        assert entries[0] == (hdfs_dir, ["subdir"], ["test.txt"])
+        assert entries[1] == (posixpath.join(hdfs_dir, "subdir"), [], ["nested.txt"])

@@ -79,7 +79,7 @@ class DeleteFileOperator(BaseOperator):
 
             for file_path in file_paths:
                 self.log.info("Deleting file %s", file_path)
-                hook.remove(file_path)
+                hook.rm(file_path)
 
 
 class DeleteTreeOperator(BaseOperator):

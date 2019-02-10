@@ -1,20 +1,14 @@
-import os
-from os import path
+import errno
+import fnmatch
+import posixpath
 import shutil
 
 from airflow.hooks.base_hook import BaseHook
-
 
 class FsHook(BaseHook):
     """Base FsHook defining the FsHook interface and providing some basic
        functionality built on this interface.
     """
-
-    # TODO: Allow copy_* methods to copy from non-local file systems
-    #   using the hooks themselves. Requires a `walk` implementation.
-    # TODO: Add methods for deleting files (`rm`).
-    # TODO: Add non-recursive mkdir method? (May allow better performance
-    #   than makedirs.)
 
     def __init__(self):
         super().__init__(source=None)
@@ -27,9 +21,13 @@ class FsHook(BaseHook):
 
     def disconnect(self):
         """Closes fs connection (if applicable)."""
-        pass
 
-    def open(self, file_path, mode="rb"):
+    # Interface methods (should be implemented by sub-classes).
+
+    def get_conn(self):
+        raise NotImplementedError()
+
+    def open(self, file_path, mode='rb'):
         """Returns file_obj for given file path.
 
         :param str file_path: Path to the file to open.
@@ -49,27 +47,22 @@ class FsHook(BaseHook):
         """
         raise NotImplementedError()
 
-    def makedirs(self, dir_path, mode=0o755, exist_ok=True):
-        """Creates directory, creating intermediate directories if needed.
+    def isdir(self, path):
+        """Returns true if the given path points to a directory.
 
-        :param str dir_path: Path to the directory to create.
-        :param int mode: Mode to use for directory (if created).
-        :param bool exist_ok: Whether the directory is already allowed to exist.
-            If false, a ValueError is raised if the directory exists.
+        :param str path: File or directory path.
         """
         raise NotImplementedError()
 
-    def glob(self, pattern):
-        """Returns list of paths matching pattern (i.e., with “*”s).
-
-        :param str pattern: Pattern to match
-
-        :returns: List of matched file paths.
-        :rtype: list[str]
-        """
+    def listdir(self, dir_path):
+        """Lists names of entries in the given path."""
         raise NotImplementedError()
 
-    def remove(self, file_path):
+    def mkdir(self, dir_path, mode=0o755, exist_ok=True):
+        """Creates the directory, without creating intermediate directories."""
+        raise NotImplementedError()
+
+    def rm(self, file_path):
         """Deletes the given file path.
 
         :param str file_path: Path to file:
@@ -83,57 +76,130 @@ class FsHook(BaseHook):
         """
         raise NotImplementedError()
 
-    def copy_file(self, src_path, dest_path):
-        """Copies local file to given path.
+    @staticmethod
+    def _raise_dir_exists(dir_path):
+        raise IOError(errno.EEXIST,
+                      'Directory exists: {!r}'.format(dir_path))
 
-        :param str src_path: Path to source file.
-        :param str dest_path: Path to destination file.
+    # General utility methods built on the above interface methods.
+
+    # These methods can be overridden in sub-classes if more efficient
+    # implementations are available for a specific file system.
+
+    def makedirs(self, dir_path, mode=0o755, exist_ok=True):
+        """Creates directory, creating intermediate directories if needed.
+
+        :param str dir_path: Path to the directory to create.
+        :param int mode: Mode to use for directory (if created).
+        :param bool exist_ok: Whether the directory is already allowed to exist.
+            If false, an IOError is raised if the directory exists.
         """
 
-        with open(src_path, "rb") as src_file, self.open(dest_path, "wb") as dest_file:
-            shutil.copyfileobj(src_file, dest_file)
+        head, tail = posixpath.split(dir_path)
+        if not tail:
+            head, tail = posixpath.split(head)
+        if head and tail and not self.exists(head):
+            try:
+                self.makedirs(head, mode=mode, exist_ok=exist_ok)
+            except FileExistsError:
+                # Defeats race condition when another thread created the path
+                pass
+            current_dir = posixpath.curdir
+            if isinstance(tail, bytes):
+                current_dir = bytes(posixpath.curdir, 'ASCII')
+            if tail == current_dir: # xxx/newdir/. exists if xxx/newdir exists
+                return
+        try:
+            self.mkdir(dir_path, mode=mode, exist_ok=exist_ok)
+        except OSError:
+            # Cannot rely on checking for EEXIST, since the operating system
+            # could give priority to other errors like EACCES or EROFS
+            if not exist_ok or not self.isdir(dir_path):
+                raise
 
-    def copy_fileobj(self, src_obj, dest_path):
-        """Copies fileobj to given path.
+    def walk(self, root):
+        """Directory tree generator, similar to os.walk."""
 
-        :param src_obj: Source file-like object.
-        :param str dest_path: Path to destination file.
+        sub_dirs, files = [], []
+        for item in self.listdir(root):
+            full_path = posixpath.join(root, item)
+            if self.isdir(full_path):
+                sub_dirs.append(item)
+            else:
+                files.append(item)
+
+        yield root, sub_dirs, files
+
+        for sub_dir in sub_dirs:
+            yield from self.walk(posixpath.join(root, sub_dir))
+
+    def glob(self, pattern, only_files=True):
+        """Returns list of file paths matching glob pattern.
+
+        Recursive globbing is not supported.
+
+        :param str pattern: Pattern to match against file name.
+        :param bool only_files: If true, only files are returned
+            in the result (no directories).
+
+        :returns: List of matched file paths.
+        :rtype: list[str]
         """
 
-        with self.open(dest_path, "wb") as dest_file:
-            shutil.copyfileobj(src_obj, dest_file)
+        if "**" in pattern:
+            raise ValueError("Recursive globbing is not supported")
 
-    def copy_dir(self, src_dir, dest_dir):
-        """Copies local directory recursively to given path.
+        root = posixpath.dirname(pattern)
+        file_pattern = posixpath.basename(pattern)
 
-        :param str src_dir: Path to source directory.
-        :param str dest_path: Path to destination directory.
+        matches = [posixpath.join(root, match) for match in
+                   fnmatch.filter(self.listdir(root), file_pattern)]
+
+        if only_files:
+            matches = (match for match in matches if not self.isdir(match))
+
+        for match in matches:
+            yield match
+
+    # Methods for copying files between hooks.
+
+    def copy(self, src_path, dest_path, src_hook=None):
+        """Copies files into the hooks file system.
+
+        By default, source files are assumed to be on the same file system as the
+        destination (the hooks file system). To copy between different file systems
+        or file systems in different locations, a source file hook can be provided
+        using the `src_hook` argument.
         """
 
-        # Create root dest dir.
-        self.makedirs(dest_dir, exist_ok=True)
+        # TODO: Allow short circuiting when copying within the same filesystem
+        #   with the same connection details?
 
-        for root, dirs, files in os.walk(src_dir):
-            # Copy over files.
-            for item in files:
-                src_path = path.join(root, item)
+        src_hook = src_hook or self
 
-                rel_path = path.relpath(src_path, src_dir)
-                dest_path = path.join(dest_dir, rel_path)
+        for src_fp, dest_fp in self._generate_cp_paths(src_path, dest_path, src_hook):
+            with src_hook.open(src_fp, "rb") as src_file, \
+                 self.open(dest_fp, "wb") as dest_file:
+                shutil.copyfileobj(src_file, dest_file)
 
-                self.copy_file(src_path, dest_path)
+        if src_hook != self:
+            src_hook.disconnect()
 
-            # Create sub-directories.
-            for item in dirs:
-                src_path = path.join(root, item)
+    @staticmethod
+    def _generate_cp_paths(src_path, dest_path, src_hook):
+        for src_file_path in src_hook.glob(src_path):
+            base_name = posixpath.basename(src_file_path)
+            dest_file_path = posixpath.join(dest_path, base_name)
+            yield src_file_path, dest_file_path
 
-                rel_path = path.relpath(src_path, src_dir)
-                dest_path = path.join(dest_dir, rel_path)
-
-                self.makedirs(dest_path, exist_ok=True)
+    def copy_fileobj(self, file_obj, dest_path):
+        """Copies a file object into the hooks file system."""
+        with self.open(dest_path, "wb") as dst_file:
+            shutil.copyfileobj(file_obj, dst_file)
 
 
 class NotSupportedError(NotImplementedError):
-    """Exception that may be raised by FsHooks if the don't support
-       the given operation.
+    """Exception that can be raised by FsHooks if they don't support
+       a given operation.
     """
+
