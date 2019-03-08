@@ -1,0 +1,297 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Concepts &mdash; airflow-fs 0.1.dev16+g7be5685.d20190308 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Usage" href="usage.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> airflow-fs
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">AirflowFS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Concepts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#why-airflowfs">Why AirflowFS?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#file-system-hooks">File system hooks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#file-system-operators">File system operators</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authors.html">Credits</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">History</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">airflow-fs</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Concepts</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/concepts.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="concepts">
+<h1>Concepts<a class="headerlink" href="#concepts" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="why-airflowfs">
+<h2>Why AirflowFS?<a class="headerlink" href="#why-airflowfs" title="Permalink to this headline">¶</a></h2>
+<p>Although Airflow provides a large set of builtin hooks and operators to work with,
+these builtin components generally lack a common reusable interface across related
+components. This limitation is especially glaring in the set of file system hooks
+provided by Airflow, which require a developer to use entirely different interfaces
+for working with different file systems. This (among other things) has lead to the
+widespread development of many a-to-b operators (e.g., S3ToHiveOperator,
+GcsToS3Operator, etc.), resulting in unnecessary code duplication.</p>
+<p>AirflowFS aims to solve this issue by defining a common interface for file system hooks,
+which is based on a subset of functions from the <cite>os</cite> and <cite>shutil</cite> modules in the
+Python standard library. This interface allows operations to be performed across
+different file systems using the same code, easing their use for developers. Moreover,
+the common interface increases the composability of file system hooks, enabling the
+development of common operators for performing tasks, independent of the underlying
+file system(s).</p>
+</div>
+<div class="section" id="file-system-hooks">
+<h2>File system hooks<a class="headerlink" href="#file-system-hooks" title="Permalink to this headline">¶</a></h2>
+<p>File system hooks are Airflow hooks that follow a common interface by extending the
+<cite>FSHook</cite> base class and providing implementations for several abstract methods. This
+allows us to work with different file systems using virtually the same code. For
+example, following this approach makes reading a file from an FTP server or an S3 file
+system virtually identical:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">airflow_fs.hooks</span> <span class="kn">import</span> <span class="n">FtpHook</span><span class="p">,</span> <span class="n">S3Hook</span>
+
+<span class="c1"># Reading a file from FTP.</span>
+<span class="k">with</span> <span class="n">FtpHook</span><span class="p">(</span><span class="n">conn_id</span><span class="o">=</span><span class="s2">&quot;ftp_default&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ftp_hook</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">ftp_hook</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;some_file.txt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+<span class="c1"># Reading a file from S3.</span>
+<span class="k">with</span> <span class="n">S3Hook</span><span class="p">(</span><span class="n">conn_id</span><span class="o">=</span><span class="s2">&quot;s3_default&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">s3_hook</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">s3_hook</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;some_file.txt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>For more details on the methods provided by file system hooks, see the Usage and
+API sections of this documentation.</p>
+<p>Out of the box, AirflowFS provides hooks for a number of frequently used file systems
+such as FTP, S3, SFTP and HDFS. Support for additional file systems can be added by
+implementing additional <cite>FsHook</cite> subclasses, which provide file system-specific
+implementations for the following methods:</p>
+<ul class="simple">
+<li><cite>open</cite> - Opens a file for reading writing, similar to the builtin <cite>open</cite> function.</li>
+<li><cite>exists</cite> - Checks if a given file or directory exists, similar to <cite>os.path.exists</cite>.</li>
+<li><cite>isdir</cite> - Checks if a given path points to a directory, similar to <cite>os.path.isdir</cite>.</li>
+<li><cite>listdir</cite> - Lists files and subdirectories in a given directory, similar to <cite>os.listdir</cite>.</li>
+<li><cite>mkdir</cite> - Creates a new directory, similar to <cite>os.mkdir</cite>.</li>
+<li><cite>rm</cite> - Deletes a file, similar to <cite>os.unlink</cite>.</li>
+<li><cite>rmtree</cite> - Deletes a directory tree, similar to <cite>shutil.rmtree</cite>.</li>
+</ul>
+<p>Additional methods for more complex operations such as copying files, etc. are readily
+provided by the <cite>FsHook</cite> base class (see the <cite>FSHook</cite> API for more details). These
+methods are generally implemented using the base methods above and do not have to
+implemented for each specific hook.</p>
+</div>
+<div class="section" id="file-system-operators">
+<h2>File system operators<a class="headerlink" href="#file-system-operators" title="Permalink to this headline">¶</a></h2>
+<p>Besides hooks, AirflowFS also provides several file system operators for performing
+common tasks such as copying and deleting files. These operators are built on top of
+file system hooks to make their implementation independent of the underlying file
+system.</p>
+<p>For example, copying two files between any two file systems can be achieved
+using the <cite>CopyFileOperator</cite>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">airflow_fs.hooks</span> <span class="kn">import</span> <span class="n">S3Hook</span><span class="p">,</span> <span class="n">FtpHook</span>
+<span class="kn">from</span> <span class="nn">airflow_fs.operators</span> <span class="kn">import</span> <span class="n">CopyFileOperator</span>
+
+<span class="n">copy_file_task</span> <span class="o">=</span> <span class="n">CopyFileOperator</span><span class="p">(</span>
+    <span class="n">src_path</span><span class="o">=</span><span class="s2">&quot;my-bucket/example.txt&quot;</span><span class="p">,</span>
+    <span class="n">dest_path</span><span class="o">=</span><span class="s2">&quot;example.txt&quot;</span><span class="p">,</span>
+    <span class="n">src_hook</span><span class="o">=</span><span class="n">S3Hook</span><span class="p">(</span><span class="n">conn_id</span><span class="o">=</span><span class="s2">&quot;s3_default&quot;</span><span class="p">),</span>
+    <span class="n">dest_hook</span><span class="o">=</span><span class="n">FtpHook</span><span class="p">(</span><span class="n">conn_id</span><span class="o">=</span><span class="s2">&quot;ftp_default&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>For more details on the different file system operators, see the Usage and
+API sections.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="usage.html" class="btn btn-neutral float-right" title="Usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Julian de Ruiter
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

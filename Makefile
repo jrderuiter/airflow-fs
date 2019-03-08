@@ -89,15 +89,3 @@ dist: clean ## builds source and wheel package
 
 install: clean ## install the package to the active Python's site-packages
 	python setup.py install
-
-gh-pages: ## deploy documentation on github-pages.
-	git checkout gh-pages
-	find ./* -not -path '*/\.*' -prune -exec rm -r "{}" \;
-	git checkout develop docs Makefile src AUTHORS.rst CONTRIBUTING.rst HISTORY.rst README.rst
-	git reset HEAD
-	(cd docs && make html)
-	mv -fv docs/_build/html/* ./
-	rm -rf docs Makefile src AUTHORS.rst CONTRIBUTING.rst HISTORY.rst README.rst
-	touch .nojekyll
-	git add -A
-    git commit -m "Generated gh-pages for `git log develop -1 --pretty=short --abbrev-commit`" && git push origin gh-pages ; git checkout develop

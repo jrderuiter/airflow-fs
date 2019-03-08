@@ -1,0 +1,1040 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>API &mdash; airflow-fs 0.1.dev16+g7be5685.d20190308 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Contributing" href="contributing.html" />
+    <link rel="prev" title="Usage" href="usage.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> airflow-fs
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">AirflowFS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="concepts.html">Concepts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-airflow_fs.hooks">Hooks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-airflow_fs.operators">Operators</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authors.html">Credits</a></li>
+<li class="toctree-l1"><a class="reference internal" href="history.html">History</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">airflow-fs</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>API</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/api.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="api">
+<h1>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-airflow_fs.hooks">
+<span id="hooks"></span><h2>Hooks<a class="headerlink" href="#module-airflow_fs.hooks" title="Permalink to this headline">¶</a></h2>
+<p>Module containing various file system hooks.</p>
+<dl class="class">
+<dt id="airflow_fs.hooks.FsHook">
+<em class="property">class </em><code class="descclassname">airflow_fs.hooks.</code><code class="descname">FsHook</code><a class="reference internal" href="_modules/airflow_fs/hooks/fs_hook.html#FsHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FsHook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base FsHook defining the FsHook interface and providing some basic
+functionality built on this interface.</p>
+<dl class="method">
+<dt id="airflow_fs.hooks.FsHook.copy_file">
+<code class="descname">copy_file</code><span class="sig-paren">(</span><em>src_path</em>, <em>dest_path</em>, <em>src_hook=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/fs_hook.html#FsHook.copy_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FsHook.copy_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copies files into the hooks file system.</p>
+<p>By default, source files are assumed to be on the same file system as the
+destination (the hooks file system). To copy between different file systems
+or file systems in different locations, a source file hook can be provided
+using the <cite>src_hook</cite> argument.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.FsHook.copy_fileobj">
+<code class="descname">copy_fileobj</code><span class="sig-paren">(</span><em>file_obj</em>, <em>dest_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/fs_hook.html#FsHook.copy_fileobj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FsHook.copy_fileobj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copies a file object into the hooks file system.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.FsHook.disconnect">
+<code class="descname">disconnect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/fs_hook.html#FsHook.disconnect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FsHook.disconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes fs connection (if applicable).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.FsHook.exists">
+<code class="descname">exists</code><span class="sig-paren">(</span><em>file_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/fs_hook.html#FsHook.exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FsHook.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks whether the given file path exists.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file_path</strong> (<em>str</em>) – File path.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the file exists, else False.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.FsHook.glob">
+<code class="descname">glob</code><span class="sig-paren">(</span><em>pattern</em>, <em>recursive=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/fs_hook.html#FsHook.glob"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FsHook.glob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of paths matching a pathname pattern.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.FsHook.isdir">
+<code class="descname">isdir</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/fs_hook.html#FsHook.isdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FsHook.isdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if the given path points to a directory.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<em>str</em>) – File or directory path.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.FsHook.listdir">
+<code class="descname">listdir</code><span class="sig-paren">(</span><em>dir_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/fs_hook.html#FsHook.listdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FsHook.listdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lists names of entries in the given path.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.FsHook.makedirs">
+<code class="descname">makedirs</code><span class="sig-paren">(</span><em>dir_path</em>, <em>mode=493</em>, <em>exist_ok=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/fs_hook.html#FsHook.makedirs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FsHook.makedirs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates directory, creating intermediate directories if needed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dir_path</strong> (<em>str</em>) – Path to the directory to create.</li>
+<li><strong>mode</strong> (<em>int</em>) – Mode to use for directory (if created).</li>
+<li><strong>exist_ok</strong> (<em>bool</em>) – Whether the directory is already allowed to exist.
+If false, an IOError is raised if the directory exists.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.FsHook.mkdir">
+<code class="descname">mkdir</code><span class="sig-paren">(</span><em>dir_path</em>, <em>mode=493</em>, <em>exist_ok=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/fs_hook.html#FsHook.mkdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FsHook.mkdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the directory, without creating intermediate directories.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.FsHook.open">
+<code class="descname">open</code><span class="sig-paren">(</span><em>file_path</em>, <em>mode='rb'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/fs_hook.html#FsHook.open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FsHook.open" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns file_obj for given file path.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>file_path</strong> (<em>str</em>) – Path to the file to open.</li>
+<li><strong>mode</strong> (<em>str</em>) – Mode to open the file in.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An opened file object.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.FsHook.rm">
+<code class="descname">rm</code><span class="sig-paren">(</span><em>file_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/fs_hook.html#FsHook.rm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FsHook.rm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes the given file path.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file_path</strong> (<em>str</em>) – Path to file:</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.FsHook.rmtree">
+<code class="descname">rmtree</code><span class="sig-paren">(</span><em>dir_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/fs_hook.html#FsHook.rmtree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FsHook.rmtree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes given directory tree recursively.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dir_path</strong> (<em>str</em>) – Path to directory to delete.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.FsHook.walk">
+<code class="descname">walk</code><span class="sig-paren">(</span><em>root</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/fs_hook.html#FsHook.walk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FsHook.walk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Directory tree generator, similar to os.walk.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="airflow_fs.hooks.FtpHook">
+<em class="property">class </em><code class="descclassname">airflow_fs.hooks.</code><code class="descname">FtpHook</code><span class="sig-paren">(</span><em>conn_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/ftp_hook.html#FtpHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FtpHook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hook for interacting with files over FTP.</p>
+<dl class="method">
+<dt id="airflow_fs.hooks.FtpHook.disconnect">
+<code class="descname">disconnect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/ftp_hook.html#FtpHook.disconnect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FtpHook.disconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes fs connection (if applicable).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.FtpHook.exists">
+<code class="descname">exists</code><span class="sig-paren">(</span><em>file_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/ftp_hook.html#FtpHook.exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FtpHook.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks whether the given file path exists.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file_path</strong> (<em>str</em>) – File path.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the file exists, else False.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.FtpHook.isdir">
+<code class="descname">isdir</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/ftp_hook.html#FtpHook.isdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FtpHook.isdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if the given path points to a directory.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<em>str</em>) – File or directory path.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.FtpHook.listdir">
+<code class="descname">listdir</code><span class="sig-paren">(</span><em>dir_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/ftp_hook.html#FtpHook.listdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FtpHook.listdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lists names of entries in the given path.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.FtpHook.makedirs">
+<code class="descname">makedirs</code><span class="sig-paren">(</span><em>dir_path</em>, <em>mode=493</em>, <em>exist_ok=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/ftp_hook.html#FtpHook.makedirs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FtpHook.makedirs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates directory, creating intermediate directories if needed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dir_path</strong> (<em>str</em>) – Path to the directory to create.</li>
+<li><strong>mode</strong> (<em>int</em>) – Mode to use for directory (if created).</li>
+<li><strong>exist_ok</strong> (<em>bool</em>) – Whether the directory is already allowed to exist.
+If false, an IOError is raised if the directory exists.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.FtpHook.mkdir">
+<code class="descname">mkdir</code><span class="sig-paren">(</span><em>dir_path</em>, <em>mode=493</em>, <em>exist_ok=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/ftp_hook.html#FtpHook.mkdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FtpHook.mkdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the directory, without creating intermediate directories.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.FtpHook.open">
+<code class="descname">open</code><span class="sig-paren">(</span><em>file_path</em>, <em>mode='rb'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/ftp_hook.html#FtpHook.open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FtpHook.open" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns file_obj for given file path.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>file_path</strong> (<em>str</em>) – Path to the file to open.</li>
+<li><strong>mode</strong> (<em>str</em>) – Mode to open the file in.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An opened file object.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.FtpHook.rm">
+<code class="descname">rm</code><span class="sig-paren">(</span><em>file_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/ftp_hook.html#FtpHook.rm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FtpHook.rm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes the given file path.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file_path</strong> (<em>str</em>) – Path to file:</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.FtpHook.rmtree">
+<code class="descname">rmtree</code><span class="sig-paren">(</span><em>dir_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/ftp_hook.html#FtpHook.rmtree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FtpHook.rmtree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes given directory tree recursively.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dir_path</strong> (<em>str</em>) – Path to directory to delete.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.FtpHook.walk">
+<code class="descname">walk</code><span class="sig-paren">(</span><em>root</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/ftp_hook.html#FtpHook.walk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FtpHook.walk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Directory tree generator, similar to os.walk.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="airflow_fs.hooks.HdfsHook">
+<em class="property">class </em><code class="descclassname">airflow_fs.hooks.</code><code class="descname">HdfsHook</code><span class="sig-paren">(</span><em>conn_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/hdfs_hook.html#HdfsHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.HdfsHook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hook for interacting with files over HDFS.</p>
+<dl class="method">
+<dt id="airflow_fs.hooks.HdfsHook.disconnect">
+<code class="descname">disconnect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/hdfs_hook.html#HdfsHook.disconnect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.HdfsHook.disconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes fs connection (if applicable).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.HdfsHook.exists">
+<code class="descname">exists</code><span class="sig-paren">(</span><em>file_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/hdfs_hook.html#HdfsHook.exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.HdfsHook.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks whether the given file path exists.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file_path</strong> (<em>str</em>) – File path.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the file exists, else False.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.HdfsHook.isdir">
+<code class="descname">isdir</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/hdfs_hook.html#HdfsHook.isdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.HdfsHook.isdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if the given path points to a directory.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<em>str</em>) – File or directory path.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.HdfsHook.listdir">
+<code class="descname">listdir</code><span class="sig-paren">(</span><em>dir_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/hdfs_hook.html#HdfsHook.listdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.HdfsHook.listdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lists names of entries in the given path.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.HdfsHook.makedirs">
+<code class="descname">makedirs</code><span class="sig-paren">(</span><em>dir_path</em>, <em>mode=493</em>, <em>exist_ok=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/hdfs_hook.html#HdfsHook.makedirs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.HdfsHook.makedirs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates directory, creating intermediate directories if needed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dir_path</strong> (<em>str</em>) – Path to the directory to create.</li>
+<li><strong>mode</strong> (<em>int</em>) – Mode to use for directory (if created).</li>
+<li><strong>exist_ok</strong> (<em>bool</em>) – Whether the directory is already allowed to exist.
+If false, an IOError is raised if the directory exists.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.HdfsHook.mkdir">
+<code class="descname">mkdir</code><span class="sig-paren">(</span><em>dir_path</em>, <em>mode=0.0</em>, <em>exist_ok=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/hdfs_hook.html#HdfsHook.mkdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.HdfsHook.mkdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the directory, without creating intermediate directories.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.HdfsHook.open">
+<code class="descname">open</code><span class="sig-paren">(</span><em>file_path</em>, <em>mode='rb'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/hdfs_hook.html#HdfsHook.open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.HdfsHook.open" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns file_obj for given file path.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>file_path</strong> (<em>str</em>) – Path to the file to open.</li>
+<li><strong>mode</strong> (<em>str</em>) – Mode to open the file in.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An opened file object.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.HdfsHook.rm">
+<code class="descname">rm</code><span class="sig-paren">(</span><em>file_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/hdfs_hook.html#HdfsHook.rm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.HdfsHook.rm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes the given file path.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file_path</strong> (<em>str</em>) – Path to file:</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.HdfsHook.rmtree">
+<code class="descname">rmtree</code><span class="sig-paren">(</span><em>dir_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/hdfs_hook.html#HdfsHook.rmtree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.HdfsHook.rmtree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes given directory tree recursively.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dir_path</strong> (<em>str</em>) – Path to directory to delete.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.HdfsHook.walk">
+<code class="descname">walk</code><span class="sig-paren">(</span><em>root</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/hdfs_hook.html#HdfsHook.walk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.HdfsHook.walk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Directory tree generator, similar to os.walk.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="airflow_fs.hooks.S3Hook">
+<em class="property">class </em><code class="descclassname">airflow_fs.hooks.</code><code class="descname">S3Hook</code><span class="sig-paren">(</span><em>conn_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/s3_hook.html#S3Hook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.S3Hook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hook for interacting with files in S3.</p>
+<dl class="method">
+<dt id="airflow_fs.hooks.S3Hook.disconnect">
+<code class="descname">disconnect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/s3_hook.html#S3Hook.disconnect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.S3Hook.disconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes fs connection (if applicable).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.S3Hook.exists">
+<code class="descname">exists</code><span class="sig-paren">(</span><em>file_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/s3_hook.html#S3Hook.exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.S3Hook.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks whether the given file path exists.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file_path</strong> (<em>str</em>) – File path.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the file exists, else False.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.S3Hook.isdir">
+<code class="descname">isdir</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/s3_hook.html#S3Hook.isdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.S3Hook.isdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if the given path points to a directory.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<em>str</em>) – File or directory path.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.S3Hook.listdir">
+<code class="descname">listdir</code><span class="sig-paren">(</span><em>dir_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/s3_hook.html#S3Hook.listdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.S3Hook.listdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lists names of entries in the given path.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.S3Hook.makedirs">
+<code class="descname">makedirs</code><span class="sig-paren">(</span><em>dir_path</em>, <em>mode=493</em>, <em>exist_ok=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/s3_hook.html#S3Hook.makedirs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.S3Hook.makedirs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates directory, creating intermediate directories if needed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dir_path</strong> (<em>str</em>) – Path to the directory to create.</li>
+<li><strong>mode</strong> (<em>int</em>) – Mode to use for directory (if created).</li>
+<li><strong>exist_ok</strong> (<em>bool</em>) – Whether the directory is already allowed to exist.
+If false, an IOError is raised if the directory exists.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.S3Hook.mkdir">
+<code class="descname">mkdir</code><span class="sig-paren">(</span><em>dir_path</em>, <em>mode=493</em>, <em>exist_ok=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/s3_hook.html#S3Hook.mkdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.S3Hook.mkdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the directory, without creating intermediate directories.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.S3Hook.open">
+<code class="descname">open</code><span class="sig-paren">(</span><em>file_path</em>, <em>mode='rb'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/s3_hook.html#S3Hook.open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.S3Hook.open" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns file_obj for given file path.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>file_path</strong> (<em>str</em>) – Path to the file to open.</li>
+<li><strong>mode</strong> (<em>str</em>) – Mode to open the file in.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An opened file object.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.S3Hook.rm">
+<code class="descname">rm</code><span class="sig-paren">(</span><em>file_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/s3_hook.html#S3Hook.rm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.S3Hook.rm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes the given file path.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file_path</strong> (<em>str</em>) – Path to file:</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.S3Hook.rmtree">
+<code class="descname">rmtree</code><span class="sig-paren">(</span><em>dir_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/s3_hook.html#S3Hook.rmtree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.S3Hook.rmtree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes given directory tree recursively.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dir_path</strong> (<em>str</em>) – Path to directory to delete.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.S3Hook.walk">
+<code class="descname">walk</code><span class="sig-paren">(</span><em>root</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/s3_hook.html#S3Hook.walk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.S3Hook.walk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Directory tree generator, similar to os.walk.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="airflow_fs.hooks.SftpHook">
+<em class="property">class </em><code class="descclassname">airflow_fs.hooks.</code><code class="descname">SftpHook</code><span class="sig-paren">(</span><em>conn_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/sftp_hook.html#SftpHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.SftpHook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hook for interacting with files over SFTP.</p>
+<dl class="method">
+<dt id="airflow_fs.hooks.SftpHook.disconnect">
+<code class="descname">disconnect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/sftp_hook.html#SftpHook.disconnect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.SftpHook.disconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes fs connection (if applicable).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.SftpHook.exists">
+<code class="descname">exists</code><span class="sig-paren">(</span><em>file_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/sftp_hook.html#SftpHook.exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.SftpHook.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks whether the given file path exists.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file_path</strong> (<em>str</em>) – File path.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the file exists, else False.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.SftpHook.isdir">
+<code class="descname">isdir</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/sftp_hook.html#SftpHook.isdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.SftpHook.isdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if the given path points to a directory.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<em>str</em>) – File or directory path.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.SftpHook.listdir">
+<code class="descname">listdir</code><span class="sig-paren">(</span><em>dir_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/sftp_hook.html#SftpHook.listdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.SftpHook.listdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lists names of entries in the given path.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.SftpHook.makedirs">
+<code class="descname">makedirs</code><span class="sig-paren">(</span><em>dir_path</em>, <em>mode=493</em>, <em>exist_ok=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/sftp_hook.html#SftpHook.makedirs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.SftpHook.makedirs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates directory, creating intermediate directories if needed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dir_path</strong> (<em>str</em>) – Path to the directory to create.</li>
+<li><strong>mode</strong> (<em>int</em>) – Mode to use for directory (if created).</li>
+<li><strong>exist_ok</strong> (<em>bool</em>) – Whether the directory is already allowed to exist.
+If false, an IOError is raised if the directory exists.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.SftpHook.mkdir">
+<code class="descname">mkdir</code><span class="sig-paren">(</span><em>dir_path</em>, <em>mode=493</em>, <em>exist_ok=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/sftp_hook.html#SftpHook.mkdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.SftpHook.mkdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the directory, without creating intermediate directories.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.SftpHook.open">
+<code class="descname">open</code><span class="sig-paren">(</span><em>file_path</em>, <em>mode='rb'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/sftp_hook.html#SftpHook.open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.SftpHook.open" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns file_obj for given file path.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>file_path</strong> (<em>str</em>) – Path to the file to open.</li>
+<li><strong>mode</strong> (<em>str</em>) – Mode to open the file in.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An opened file object.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.SftpHook.rm">
+<code class="descname">rm</code><span class="sig-paren">(</span><em>file_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/sftp_hook.html#SftpHook.rm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.SftpHook.rm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes the given file path.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file_path</strong> (<em>str</em>) – Path to file:</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.SftpHook.rmtree">
+<code class="descname">rmtree</code><span class="sig-paren">(</span><em>dir_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/sftp_hook.html#SftpHook.rmtree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.SftpHook.rmtree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes given directory tree recursively.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dir_path</strong> (<em>str</em>) – Path to directory to delete.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="airflow_fs.hooks.LocalHook">
+<em class="property">class </em><code class="descclassname">airflow_fs.hooks.</code><code class="descname">LocalHook</code><a class="reference internal" href="_modules/airflow_fs/hooks/local_hook.html#LocalHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.LocalHook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hook for interacting with local files on the local file system.</p>
+<dl class="method">
+<dt id="airflow_fs.hooks.LocalHook.exists">
+<code class="descname">exists</code><span class="sig-paren">(</span><em>file_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/local_hook.html#LocalHook.exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.LocalHook.exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks whether the given file path exists.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file_path</strong> (<em>str</em>) – File path.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the file exists, else False.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.LocalHook.isdir">
+<code class="descname">isdir</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/local_hook.html#LocalHook.isdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.LocalHook.isdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if the given path points to a directory.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<em>str</em>) – File or directory path.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.LocalHook.listdir">
+<code class="descname">listdir</code><span class="sig-paren">(</span><em>dir_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/local_hook.html#LocalHook.listdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.LocalHook.listdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lists names of entries in the given path.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.LocalHook.makedirs">
+<code class="descname">makedirs</code><span class="sig-paren">(</span><em>dir_path</em>, <em>mode=493</em>, <em>exist_ok=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/local_hook.html#LocalHook.makedirs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.LocalHook.makedirs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates directory, creating intermediate directories if needed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dir_path</strong> (<em>str</em>) – Path to the directory to create.</li>
+<li><strong>mode</strong> (<em>int</em>) – Mode to use for directory (if created).</li>
+<li><strong>exist_ok</strong> (<em>bool</em>) – Whether the directory is already allowed to exist.
+If false, an IOError is raised if the directory exists.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.LocalHook.mkdir">
+<code class="descname">mkdir</code><span class="sig-paren">(</span><em>dir_path</em>, <em>mode=493</em>, <em>exist_ok=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/local_hook.html#LocalHook.mkdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.LocalHook.mkdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the directory, without creating intermediate directories.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.LocalHook.open">
+<code class="descname">open</code><span class="sig-paren">(</span><em>file_path</em>, <em>mode='rb'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/local_hook.html#LocalHook.open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.LocalHook.open" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns file_obj for given file path.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>file_path</strong> (<em>str</em>) – Path to the file to open.</li>
+<li><strong>mode</strong> (<em>str</em>) – Mode to open the file in.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An opened file object.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.LocalHook.rm">
+<code class="descname">rm</code><span class="sig-paren">(</span><em>file_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/local_hook.html#LocalHook.rm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.LocalHook.rm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes the given file path.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file_path</strong> (<em>str</em>) – Path to file:</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.LocalHook.rmtree">
+<code class="descname">rmtree</code><span class="sig-paren">(</span><em>dir_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/local_hook.html#LocalHook.rmtree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.LocalHook.rmtree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes given directory tree recursively.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dir_path</strong> (<em>str</em>) – Path to directory to delete.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="airflow_fs.hooks.LocalHook.walk">
+<code class="descname">walk</code><span class="sig-paren">(</span><em>root</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/local_hook.html#LocalHook.walk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.LocalHook.walk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Directory tree generator, similar to os.walk.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-airflow_fs.operators">
+<span id="operators"></span><h2>Operators<a class="headerlink" href="#module-airflow_fs.operators" title="Permalink to this headline">¶</a></h2>
+<p>File system operators, built on the file system hook interface.</p>
+<dl class="class">
+<dt id="airflow_fs.operators.CopyFileOperator">
+<em class="property">class </em><code class="descclassname">airflow_fs.operators.</code><code class="descname">CopyFileOperator</code><span class="sig-paren">(</span><em>src_path</em>, <em>dest_path</em>, <em>src_hook=None</em>, <em>dest_hook=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/operators.html#CopyFileOperator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.operators.CopyFileOperator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Operator for copying files between file systems.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="airflow_fs.operators.DeleteFileOperator">
+<em class="property">class </em><code class="descclassname">airflow_fs.operators.</code><code class="descname">DeleteFileOperator</code><span class="sig-paren">(</span><em>path</em>, <em>hook=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/operators.html#DeleteFileOperator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.operators.DeleteFileOperator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes files at given path.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="airflow_fs.operators.DeleteTreeOperator">
+<em class="property">class </em><code class="descclassname">airflow_fs.operators.</code><code class="descname">DeleteTreeOperator</code><span class="sig-paren">(</span><em>path</em>, <em>hook=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/operators.html#DeleteTreeOperator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.operators.DeleteTreeOperator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes files at given path.</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="contributing.html" class="btn btn-neutral float-right" title="Contributing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="usage.html" class="btn btn-neutral float-left" title="Usage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Julian de Ruiter
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
