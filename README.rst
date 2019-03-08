@@ -2,8 +2,8 @@
 AirflowFS
 =========
 
-.. image:: https://circleci.com/gh/jrderuiter/airflow-fs.svg?style=svg
-    :target: https://circleci.com/gh/jrderuiter/airflow-fs
+.. image:: https://circleci.com/gh/jrderuiter/airflow-fs.svg
+        :target: https://circleci.com/gh/jrderuiter/airflow-fs
 
 .. image:: https://img.shields.io/pypi/v/airflow_fs.svg
         :target: https://pypi.python.org/pypi/airflow-fs
