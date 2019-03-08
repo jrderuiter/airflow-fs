@@ -53,13 +53,13 @@ clean-test: ## remove test and coverage artifacts
 lint: ## check style with pylint
 	find src -name "*.py" | xargs pylint
 
-docker:  # build docker testing image
+docker: ## build docker testing image
 	docker build -t jrderuiter/airflow-fs-ci docker
 
-docker-push: docker
+docker-push: docker ## push docker testing image
 	docker push jrderuiter/airflow-fs-ci
 
-test: clean-pyc  ## run tests
+test: clean-pyc ## run tests
 	docker run -it --rm -v `pwd`:/app jrderuiter/airflow-fs-ci \
 		-c 'pip install /app[all,dev] && \
 			/bin/bash /usr/sbin/bootstrap.sh && \
@@ -89,3 +89,15 @@ dist: clean ## builds source and wheel package
 
 install: clean ## install the package to the active Python's site-packages
 	python setup.py install
+
+gh-pages: ## deploy documentation on github-pages.
+	git checkout gh-pages
+	find ./* -not -path '*/\.*' -prune -exec rm -r "{}" \;
+	git checkout develop docs Makefile src AUTHORS.rst CONTRIBUTING.rst HISTORY.rst README.rst
+	git reset HEAD
+	(cd docs && make html)
+	mv -fv docs/_build/html/* ./
+	rm -rf docs Makefile src AUTHORS.rst CONTRIBUTING.rst HISTORY.rst README.rst
+	touch .nojekyll
+	git add -A
+    git commit -m "Generated gh-pages for `git log develop -1 --pretty=short --abbrev-commit`" && git push origin gh-pages ; git checkout develop
