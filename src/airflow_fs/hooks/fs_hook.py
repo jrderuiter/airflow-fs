@@ -1,9 +1,11 @@
 import errno
-import fnmatch
 import posixpath
 import shutil
 
 from airflow.hooks.base_hook import BaseHook
+
+from airflow_fs.ports.glob import glob
+
 
 class FsHook(BaseHook):
     """Base FsHook defining the FsHook interface and providing some basic
@@ -133,33 +135,9 @@ class FsHook(BaseHook):
         for sub_dir in sub_dirs:
             yield from self.walk(posixpath.join(root, sub_dir))
 
-    def glob(self, pattern, only_files=True):
-        """Returns list of file paths matching glob pattern.
-
-        Recursive globbing is not supported.
-
-        :param str pattern: Pattern to match against file name.
-        :param bool only_files: If true, only files are returned
-            in the result (no directories).
-
-        :returns: List of matched file paths.
-        :rtype: list[str]
-        """
-
-        if "**" in pattern:
-            raise ValueError("Recursive globbing is not supported")
-
-        root = posixpath.dirname(pattern)
-        file_pattern = posixpath.basename(pattern)
-
-        matches = [posixpath.join(root, match) for match in
-                   fnmatch.filter(self.listdir(root), file_pattern)]
-
-        if only_files:
-            matches = (match for match in matches if not self.isdir(match))
-
-        for match in matches:
-            yield match
+    def glob(self, pattern, recursive=False):
+        """Return a list of paths matching a pathname pattern."""
+        return glob(pattern, recursive=recursive, hook=self)
 
     # Methods for copying files between hooks.
 

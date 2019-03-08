@@ -141,3 +141,33 @@ class TestLocalHook:
 
         assert entries[0] == (test_dir, ["subdir"], ["test.txt"])
         assert entries[1] == (posixpath.join(test_dir, "subdir"), [], ["nested.txt"])
+
+    def test_glob(self, test_dir):
+        """Tests the `glob` method."""
+
+        with LocalHook() as hook:
+            # Test simple glob on txt files.
+            txt_files = hook.glob(posixpath.join(test_dir, "*.txt"))
+            assert txt_files == [posixpath.join(test_dir, "test.txt")]
+
+            # Test glob for non-existing csv files.
+            assert hook.glob(posixpath.join(test_dir, "*.csv")) == []
+
+            # Test glob on directory.
+            assert hook.glob(test_dir) == [test_dir]
+
+            # Test glob with dir pattern.
+            assert hook.glob(posixpath.join(test_dir, "*", "*.txt")) == [
+                posixpath.join(test_dir, "subdir", "nested.txt")
+            ]
+
+    def test_glob_recursive(self, test_dir):
+        """Tests the `glob` method with recursive = True."""
+
+        test_txt = posixpath.join(test_dir, "test.txt")
+        nested_txt = posixpath.join(test_dir, "subdir", "nested.txt")
+
+        with LocalHook() as hook:
+            assert hook.glob(
+                posixpath.join(test_dir, "**", "*.txt"), recursive=True
+            ) == [test_txt, nested_txt]
