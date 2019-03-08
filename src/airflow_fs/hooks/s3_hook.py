@@ -1,3 +1,5 @@
+"""File system hook for the S3 file system."""
+
 from builtins import super
 import posixpath
 
@@ -88,9 +90,6 @@ class S3Hook(FsHook):
     def walk(self, root):
         root = _remove_trailing_slash(root)
         yield from super().walk(root)
-
-    def glob(self, pattern, only_files=True):
-        return super().glob(pattern=pattern, only_files=only_files)
 
 
 def _remove_trailing_slash(path):

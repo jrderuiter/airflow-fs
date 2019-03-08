@@ -1,10 +1,12 @@
+"""Base class defining the file system hook interface."""
+
 import errno
 import posixpath
 import shutil
 
 from airflow.hooks.base_hook import BaseHook
 
-from airflow_fs.ports.glob import glob
+from airflow_fs.ports import glob
 
 
 class FsHook(BaseHook):
@@ -137,11 +139,11 @@ class FsHook(BaseHook):
 
     def glob(self, pattern, recursive=False):
         """Return a list of paths matching a pathname pattern."""
-        return glob(pattern, recursive=recursive, hook=self)
+        return glob.glob(pattern, recursive=recursive, hook=self)
 
     # Methods for copying files between hooks.
 
-    def copy(self, src_path, dest_path, src_hook=None):
+    def copy_file(self, src_path, dest_path, src_hook=None):
         """Copies files into the hooks file system.
 
         By default, source files are assumed to be on the same file system as the
@@ -153,22 +155,9 @@ class FsHook(BaseHook):
         # TODO: Allow short circuiting when copying within the same filesystem
         #   with the same connection details?
 
-        src_hook = src_hook or self
-
-        for src_fp, dest_fp in self._generate_cp_paths(src_path, dest_path, src_hook):
-            with src_hook.open(src_fp, "rb") as src_file, \
-                 self.open(dest_fp, "wb") as dest_file:
-                shutil.copyfileobj(src_file, dest_file)
-
-        if src_hook != self:
-            src_hook.disconnect()
-
-    @staticmethod
-    def _generate_cp_paths(src_path, dest_path, src_hook):
-        for src_file_path in src_hook.glob(src_path):
-            base_name = posixpath.basename(src_file_path)
-            dest_file_path = posixpath.join(dest_path, base_name)
-            yield src_file_path, dest_file_path
+        with src_hook.open(src_path, "rb") as src_file, \
+                self.open(dest_path, "wb") as dest_file:
+            shutil.copyfileobj(src_file, dest_file)
 
     def copy_fileobj(self, file_obj, dest_path):
         """Copies a file object into the hooks file system."""
@@ -180,4 +169,3 @@ class NotSupportedError(NotImplementedError):
     """Exception that can be raised by FsHooks if they don't support
        a given operation.
     """
-

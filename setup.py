@@ -16,7 +16,7 @@ requirements = ["apache-airflow"]
 setup_requirements = ["pytest-runner", "setuptools_scm"]
 
 test_requirements = ["pytest", "pytest-mock", "pytest-cov"]
-dev_requirements = ["moto", "pylint", "sphinx", "sphinx_rtd_theme", "watchdog"]
+dev_requirements = ["moto", "pylint", "sphinx", "sphinx_rtd_theme", "watchdog", "black"]
 
 extra_requirements = {
     "ftp": ["ftputil"],

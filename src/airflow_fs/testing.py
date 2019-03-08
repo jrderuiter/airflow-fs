@@ -1,8 +1,11 @@
+"""Utility functions/classes for testing."""
+
 import os
 import posixpath
 
 
 class MockConnection:
+    """Represents a mock Airflow connection."""
     def __init__(self, host=None, login=None, password=None, extra=None, port=None):
         self.host = host
         self.login = login
@@ -16,7 +19,7 @@ def copy_tree(local_dir, dest_dir, mkdir_func, cp_func):
        implementation of mkdir and cp (to copy files) functions.
     """
 
-    for root, dirs, files in os.walk(local_dir):
+    for root, _, files in os.walk(local_dir):
         rel_root = posixpath.relpath(root, local_dir)
 
         dest_root = posixpath.join(dest_dir, rel_root)

@@ -50,8 +50,8 @@ clean-test: ## remove test and coverage artifacts
 	rm -fr htmlcov/
 	rm -fr .pytest_cache
 
-lint: ## check style with flake8
-	flake8 airflow_fs tests
+lint: ## check style with pylint
+	find src -name "*.py" | xargs pylint
 
 docker:  # build docker testing image
 	docker build -t jrderuiter/airflow-fs-ci docker
@@ -59,7 +59,7 @@ docker:  # build docker testing image
 docker-push: docker
 	docker push jrderuiter/airflow-fs-ci
 
-test: ## run tests
+test: clean-pyc  ## run tests
 	docker run -it --rm -v `pwd`:/app jrderuiter/airflow-fs-ci \
 		-c 'pip install /app[all,dev] && \
 			/bin/bash /usr/sbin/bootstrap.sh && \

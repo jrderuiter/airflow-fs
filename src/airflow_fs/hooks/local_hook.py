@@ -1,3 +1,5 @@
+"""File system hook for the local file system."""
+
 from builtins import open, str
 import os
 import shutil

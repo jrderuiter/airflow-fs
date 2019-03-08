@@ -1,37 +1,29 @@
-==========
-airflow-fs
-==========
+=========
+AirflowFS
+=========
 
+.. image:: https://circleci.com/gh/jrderuiter/airflow-fs.svg?style=svg
+    :target: https://circleci.com/gh/jrderuiter/airflow-fs
 
 .. image:: https://img.shields.io/pypi/v/airflow_fs.svg
-        :target: https://pypi.python.org/pypi/airflow_fs
+        :target: https://pypi.python.org/pypi/airflow-fs
 
-.. image:: https://img.shields.io/travis/jrderuiter/airflow_fs.svg
-        :target: https://travis-ci.org/jrderuiter/airflow_fs
+AirflowFS is Python package that provides hooks and operators for manipulating
+files across a variety of file systems using Apache Airflow.
 
-.. image:: https://readthedocs.org/projects/airflow-fs/badge/?version=latest
-        :target: https://airflow-fs.readthedocs.io/en/latest/?badge=latest
-        :alt: Documentation Status
+In contrast to Airflows builtin file system hooks/operators, AirflowFS implements a
+single interface for different file system hooks. This approach allows us to interact
+with files independently of the underlying file system, using a common set of operators
+for performing general operations such as copying and deleting files.
 
+Currently, the following file systems are supported:
 
+- Local
+- FTP
+- HDFS
+- S3
+- SFTP
 
-
-Filesystem hooks and operators for Airflow.
-
-
-* Free software: MIT license
-* Documentation: https://airflow-fs.readthedocs.io.
-
-
-Features
---------
-
-* TODO
-
-Credits
--------
-
-This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
-
-.. _Cookiecutter: https://github.com/audreyr/cookiecutter
-.. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
+Support for additional file systems can be added by implementing an additional file
+system hook that adheres to the required hook interface. See the Concepts/Usage
+sections for more details.

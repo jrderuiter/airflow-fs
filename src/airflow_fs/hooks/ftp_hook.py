@@ -1,3 +1,5 @@
+"""File system hook for the FTP file system."""
+
 from builtins import super
 import ftplib
 
@@ -84,6 +86,6 @@ class FtpHook(FsHook):
             client.makedirs(dir_path)
             client.chmod(dir_path, mode=mode)
 
-    def walk(self, dir_path):
-        for tup in self.get_conn().walk(dir_path):
+    def walk(self, root):
+        for tup in self.get_conn().walk(root):
             yield tup

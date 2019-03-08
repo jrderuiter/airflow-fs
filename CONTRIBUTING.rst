@@ -15,7 +15,7 @@ Types of Contributions
 Report Bugs
 ~~~~~~~~~~~
 
-Report bugs at https://github.com/jrderuiter/airflow_fs/issues.
+Report bugs at https://github.com/jrderuiter/airflow-fs/issues.
 
 If you are reporting a bug, please include:
 
@@ -45,7 +45,7 @@ articles, and such.
 Submit Feedback
 ~~~~~~~~~~~~~~~
 
-The best way to send feedback is to file an issue at https://github.com/jrderuiter/airflow_fs/issues.
+The best way to send feedback is to file an issue at https://github.com/jrderuiter/airflow-fs/issues.
 
 If you are proposing a feature:
 
@@ -57,18 +57,18 @@ If you are proposing a feature:
 Get Started!
 ------------
 
-Ready to contribute? Here's how to set up `airflow_fs` for local development.
+Ready to contribute? Here's how to set up `airflow-fs` for local development.
 
-1. Fork the `airflow_fs` repo on GitHub.
+1. Fork the `airflow-fs` repo on GitHub.
 2. Clone your fork locally::
 
-    $ git clone git@github.com:your_name_here/airflow_fs.git
+    $ git clone git@github.com:your_name_here/airflow-fs.git
 
 3. Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development::
 
-    $ mkvirtualenv airflow_fs
-    $ cd airflow_fs/
-    $ python setup.py develop
+    $ mkvirtualenv airflow-fs
+    $ cd airflow-fs/
+    $ pip install .[dev]
 
 4. Create a branch for local development::
 
@@ -76,14 +76,14 @@ Ready to contribute? Here's how to set up `airflow_fs` for local development.
 
    Now you can make your changes locally.
 
-5. When you're done making changes, check that your changes pass flake8 and the
-   tests, including testing other Python versions with tox::
+5. When you're done making changes, check that your changes pass pylint and the
+   tests:
 
-    $ flake8 airflow_fs tests
-    $ python setup.py test or py.test
-    $ tox
+    $ make lint
+    $ make test
 
-   To get flake8 and tox, just pip install them into your virtualenv.
+   Note that the tests require docker to be installed, as we use a docker image
+   to run the tests against live file systems.
 
 6. Commit your changes and push your branch to GitHub::
 
@@ -102,26 +102,6 @@ Before you submit a pull request, check that it meets these guidelines:
 2. If the pull request adds functionality, the docs should be updated. Put
    your new functionality into a function with a docstring, and add the
    feature to the list in README.rst.
-3. The pull request should work for Python 2.7, 3.4, 3.5 and 3.6, and for PyPy. Check
-   https://travis-ci.org/jrderuiter/airflow_fs/pull_requests
+3. The pull request should work for Python 3.4+. Check
+   https://travis-ci.org/jrderuiter/airflow-fs/pull_requests
    and make sure that the tests pass for all supported Python versions.
-
-Tips
-----
-
-To run a subset of tests::
-
-$ py.test tests.test_airflow_fs
-
-
-Deploying
----------
-
-A reminder for the maintainers on how to deploy.
-Make sure all your changes are committed (including an entry in HISTORY.rst).
-Then run::
-
-$ git push
-$ git push --tags
-
-Travis will then deploy to PyPI if tests pass.

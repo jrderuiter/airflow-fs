@@ -6,6 +6,8 @@ import posixpath
 import re
 import fnmatch
 
+# pylint: disable=too-many-branches,missing-docstring
+
 __all__ = ["glob", "iglob", "escape"]
 
 def glob(pathname, *, hook, recursive=False):
@@ -84,6 +86,7 @@ def _glob1(dirname, pattern, dironly, hook):
         names = (x for x in names if not _ishidden(x))
     return fnmatch.filter(names, pattern)
 
+# pylint: disable=unused-argument
 def _glob0(dirname, basename, dironly, hook):
     if not basename:
         # `posixpath.split()` returns an empty basename for paths ending with a
@@ -153,8 +156,7 @@ def _ishidden(path):
 def _isrecursive(pattern):
     if isinstance(pattern, bytes):
         return pattern == b'**'
-    else:
-        return pattern == '**'
+    return pattern == '**'
 
 def escape(pathname):
     """Escape all special characters.

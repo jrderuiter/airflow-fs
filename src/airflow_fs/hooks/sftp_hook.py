@@ -1,5 +1,6 @@
+"""File system hook for the SFTP (SSH) file system."""
+
 from builtins import super
-import posixpath
 
 try:
     import pysftp

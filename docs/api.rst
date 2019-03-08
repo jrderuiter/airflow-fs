@@ -12,3 +12,4 @@ Operators
 
 .. automodule:: airflow_fs.operators
     :members:
+    :exclude-members: execute
