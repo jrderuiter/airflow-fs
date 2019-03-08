@@ -4,6 +4,8 @@
 Installation
 ============
 
+**Note: airflow-fs is not *yet* available in PyPI, but will be published soon.
+Until then, please install airflow-fs from source.**
 
 Stable release
 --------------
@@ -15,10 +17,31 @@ To install airflow-fs, run this command in your terminal:
     $ pip install airflow-fs
 
 This is the preferred method to install airflow-fs, as it will always install the most
-recent stable release.
+recent stable release. If you don't have `pip`_ installed, the
+`Python installation guide`_ can guide you through the process.
 
-If you don't have `pip`_ installed, this `Python installation guide`_ can guide
-you through the process.
+To minimize its dependencies, airflow-fs is installed without file system-specific
+dependencies by default. To install file system-specific dependencies, you need to
+install airflow-fs with the extra requirements for the respective file system.
+
+For example, to install airflow-fs with FTP-specific dependencies use:
+
+.. code-block:: console
+
+    $ pip install airflow-fs[ftp]
+
+Other available extra's are `hdfs`, `s3` and `sftp`:
+
+.. code-block:: console
+
+    $ pip install airflow-fs[hdfs]  # or s3, sftp (or a combination)
+
+You can also use the extra `all` to install dependencies for all supported file systems:
+
+.. code-block:: console
+
+    $ pip install airflow-fs[all]
+
 
 .. _pip: https://pip.pypa.io
 .. _Python installation guide: http://docs.python-guide.org/en/latest/starting/installation/
@@ -45,7 +68,7 @@ Once you have a copy of the source, you can install it with:
 
 .. code-block:: console
 
-    $ python setup.py install
+    $ pip install .
 
 
 .. _Github repo: https://github.com/jrderuiter/airflow-fs
