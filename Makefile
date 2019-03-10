@@ -63,6 +63,7 @@ test: clean-pyc ## run tests
 	docker run -it --rm -v `pwd`:/app jrderuiter/airflow-fs-ci \
 		-c 'pip install /app[all,dev] && \
 			/bin/bash /usr/sbin/bootstrap.sh && \
+			airflow initdb && \
 			pytest /app/tests -vvv'
 
 coverage: ## check code coverage quickly with the default Python

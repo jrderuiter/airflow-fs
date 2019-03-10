@@ -143,8 +143,8 @@ class FsHook(BaseHook):
 
     # Methods for copying files between hooks.
 
-    def copy_file(self, src_path, dest_path, src_hook=None):
-        """Copies files into the hooks file system.
+    def copy(self, src_path, dest_path, src_hook=None):
+        """Copies file(s) into the hooks file system.
 
         By default, source files are assumed to be on the same file system as the
         destination (the hooks file system). To copy between different file systems

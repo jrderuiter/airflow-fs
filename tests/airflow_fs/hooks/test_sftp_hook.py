@@ -1,4 +1,5 @@
 from getpass import getuser
+import os
 import posixpath
 
 import pysftp
@@ -28,7 +29,7 @@ def sftp_client():
 
 
 @pytest.fixture
-def sftp_dir(mock_data_dir, sftp_client, tmpdir):
+def sftp_mock_dir(mock_data_dir, sftp_client, tmpdir):
     """Creates a mock directory containing the standard test data."""
 
     sftp_client.put_r(mock_data_dir, tmpdir)
@@ -38,10 +39,10 @@ def sftp_dir(mock_data_dir, sftp_client, tmpdir):
 class TestSftpHook:
     """Tests for the SftpHook class."""
 
-    def test_open_read(self, sftp_conn, sftp_dir):
+    def test_open_read(self, sftp_conn, sftp_mock_dir):
         """Tests reading of a file using the `open` method."""
 
-        file_path = posixpath.join(sftp_dir, "test.txt")
+        file_path = posixpath.join(sftp_mock_dir, "test.txt")
 
         with SftpHook("sftp_default") as hook:
             with hook.open(file_path) as file_:
@@ -61,26 +62,26 @@ class TestSftpHook:
 
         assert sftp_client.exists(file_path)
 
-    def test_exists(self, sftp_conn, sftp_dir):
+    def test_exists(self, sftp_conn, sftp_mock_dir):
         """Tests the `exists` method."""
 
         with SftpHook("sftp_default") as hook:
-            assert hook.exists(posixpath.join(sftp_dir, "subdir"))
-            assert hook.exists(posixpath.join(sftp_dir, "test.txt"))
-            assert not hook.exists(posixpath.join(sftp_dir, "non-existing.txt"))
+            assert hook.exists(posixpath.join(sftp_mock_dir, "subdir"))
+            assert hook.exists(posixpath.join(sftp_mock_dir, "test.txt"))
+            assert not hook.exists(posixpath.join(sftp_mock_dir, "non-existing.txt"))
 
-    def test_isdir(self, sftp_conn, sftp_dir):
+    def test_isdir(self, sftp_conn, sftp_mock_dir):
         """Tests the `isdir` method."""
 
         with SftpHook("sftp_default") as hook:
-            assert hook.isdir(posixpath.join(sftp_dir, "subdir"))
-            assert not hook.isdir(posixpath.join(sftp_dir, "test.txt"))
+            assert hook.isdir(posixpath.join(sftp_mock_dir, "subdir"))
+            assert not hook.isdir(posixpath.join(sftp_mock_dir, "test.txt"))
 
-    def test_listdir(self, sftp_conn, sftp_dir):
+    def test_listdir(self, sftp_conn, sftp_mock_dir, mock_data_dir):
         """Tests the `listdir` method."""
 
         with SftpHook("sftp_default") as hook:
-            assert set(hook.listdir(sftp_dir)) == {"test.txt", "subdir"}
+            assert set(hook.listdir(sftp_mock_dir)) == set(os.listdir(mock_data_dir))
 
     def test_mkdir(self, sftp_conn, sftp_client, tmpdir):
         """Tests the `mkdir` method with mode parameter."""
@@ -108,10 +109,10 @@ class TestSftpHook:
 
             hook.mkdir(dir_path, exist_ok=True)
 
-    def test_rm(self, sftp_conn, sftp_client, sftp_dir):
+    def test_rm(self, sftp_conn, sftp_client, sftp_mock_dir):
         """Tests the `rm` method."""
 
-        file_path = posixpath.join(sftp_dir, "test.txt")
+        file_path = posixpath.join(sftp_mock_dir, "test.txt")
         assert sftp_client.exists(file_path)
 
         with SftpHook("sftp_default") as hook:
@@ -119,10 +120,10 @@ class TestSftpHook:
 
         assert not sftp_client.exists(file_path)
 
-    def test_rmtree(self, sftp_conn, sftp_client, sftp_dir):
+    def test_rmtree(self, sftp_conn, sftp_client, sftp_mock_dir):
         """Tests the `rmtree` method."""
 
-        dir_path = posixpath.join(sftp_dir, "subdir")
+        dir_path = posixpath.join(sftp_mock_dir, "subdir")
         assert sftp_client.exists(dir_path)
 
         with SftpHook("sftp_default") as hook:
@@ -154,11 +155,10 @@ class TestSftpHook:
 
             hook.makedirs(dir_path, exist_ok=True)
 
-    def test_walk(self, sftp_conn, sftp_dir):
+    def test_walk(self, sftp_conn, sftp_mock_dir, mock_data_dir):
         """Tests the `walk` method."""
 
         with SftpHook("sftp_default") as hook:
-            entries = list(hook.walk(sftp_dir))
+            entries = list(hook.walk(sftp_mock_dir))
 
-        assert entries[0] == (sftp_dir, ["subdir"], ["test.txt"])
-        assert entries[1] == (posixpath.join(sftp_dir, "subdir"), [], ["nested.txt"])
+        pytest.helpers.assert_walk_equal(entries, os.walk(mock_data_dir))

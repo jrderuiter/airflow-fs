@@ -1,8 +1,8 @@
-from os import path, walk
+import os
 import posixpath
-from pyarrow import hdfs
 
 import pytest
+from pyarrow import hdfs
 
 from airflow_fs.hooks import HdfsHook
 from airflow_fs.testing import copy_tree
@@ -72,11 +72,11 @@ class TestHdfsHook:
             assert hook.isdir(posixpath.join(remote_mock_dir, "subdir"))
             assert not hook.isdir(posixpath.join(remote_mock_dir, "test.txt"))
 
-    def test_listdir(self, remote_mock_dir):
+    def test_listdir(self, remote_mock_dir, mock_data_dir):
         """Tests the `listdir` method."""
 
         with HdfsHook() as hook:
-            assert set(hook.listdir(remote_mock_dir)) == {"test.txt", "subdir"}
+            assert set(hook.listdir(remote_mock_dir)) == set(os.listdir(mock_data_dir))
 
     def test_mkdir(self, client, remote_temp_dir):
         """Tests the `mkdir` method with mode parameter."""
@@ -150,15 +150,10 @@ class TestHdfsHook:
 
             hook.makedirs(dir_path, exist_ok=True)
 
-    def test_walk(self, client, remote_mock_dir):
+    def test_walk(self, client, remote_mock_dir, mock_data_dir):
         """Tests the `walk` method."""
 
         with HdfsHook() as hook:
             entries = list(hook.walk(remote_mock_dir))
 
-        assert entries[0] == (remote_mock_dir, ["subdir"], ["test.txt"])
-        assert entries[1] == (
-            posixpath.join(remote_mock_dir, "subdir"),
-            [],
-            ["nested.txt"],
-        )
+        pytest.helpers.assert_walk_equal(entries, os.walk(mock_data_dir))

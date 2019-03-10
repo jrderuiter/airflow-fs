@@ -55,9 +55,10 @@ class DeleteFileOperator(BaseOperator):
 
     def execute(self, context):
         with self._hook as hook:
-            for file_path in hook.glob(self._path):
-                self.log.info("Deleting file %s", file_path)
-                hook.rm(file_path)
+            for path_ in hook.glob(self._path):
+                if not hook.isdir(path_):
+                    self.log.info("Deleting file %s", path_)
+                    hook.rm(path_)
 
 
 class DeleteTreeOperator(BaseOperator):
@@ -73,6 +74,7 @@ class DeleteTreeOperator(BaseOperator):
 
     def execute(self, context):
         with self._hook as hook:
-            for dir_path in hook.glob(self._path):
-                self.log.info("Deleting directory %s", dir_path)
-                hook.rmtree(dir_path)
+            for path_ in hook.glob(self._path):
+                if hook.isdir(path_):
+                    self.log.info("Deleting directory %s", path_)
+                    hook.rmtree(path_)

@@ -1,4 +1,4 @@
-from distutils.dir_util import copy_tree
+import glob
 import os
 import posixpath
 
@@ -7,20 +7,13 @@ import pytest
 from airflow_fs.hooks import LocalHook
 
 
-@pytest.fixture
-def test_dir(mock_data_dir, tmpdir):
-    """Creates a temp directory containing the standard test data."""
-    copy_tree(mock_data_dir, str(tmpdir))
-    return str(tmpdir)
-
-
 class TestLocalHook:
     """Tests for the LocalHook class."""
 
-    def test_open_read(self, test_dir):
+    def test_open_read(self, local_mock_dir):
         """Tests reading of a file using the `open` method."""
 
-        file_path = posixpath.join(test_dir, "test.txt")
+        file_path = posixpath.join(local_mock_dir, "test.txt")
 
         with LocalHook() as hook:
             with hook.open(file_path) as file_:
@@ -40,26 +33,26 @@ class TestLocalHook:
 
         assert posixpath.exists(file_path)
 
-    def test_exists(self, test_dir):
+    def test_exists(self, local_mock_dir):
         """Tests the `exists` method."""
 
         with LocalHook() as hook:
-            assert hook.exists(posixpath.join(test_dir, "subdir"))
-            assert hook.exists(posixpath.join(test_dir, "test.txt"))
-            assert not hook.exists(posixpath.join(test_dir, "non-existing.txt"))
+            assert hook.exists(posixpath.join(local_mock_dir, "subdir"))
+            assert hook.exists(posixpath.join(local_mock_dir, "test.txt"))
+            assert not hook.exists(posixpath.join(local_mock_dir, "non-existing.txt"))
 
-    def test_isdir(self, test_dir):
+    def test_isdir(self, local_mock_dir):
         """Tests the `isdir` method."""
 
         with LocalHook() as hook:
-            assert hook.isdir(posixpath.join(test_dir, "subdir"))
-            assert not hook.isdir(posixpath.join(test_dir, "test.txt"))
+            assert hook.isdir(posixpath.join(local_mock_dir, "subdir"))
+            assert not hook.isdir(posixpath.join(local_mock_dir, "test.txt"))
 
-    def test_listdir(self, test_dir):
+    def test_listdir(self, local_mock_dir, mock_data_dir):
         """Tests the `listdir` method."""
 
         with LocalHook() as hook:
-            assert set(hook.listdir(test_dir)) == {"test.txt", "subdir"}
+            assert set(hook.listdir(local_mock_dir)) == set(os.listdir(mock_data_dir))
 
     def test_mkdir(self, tmpdir):
         """Tests the `mkdir` method with mode parameter."""
@@ -87,10 +80,10 @@ class TestLocalHook:
 
             hook.mkdir(dir_path, exist_ok=True)
 
-    def test_rm(self, test_dir):
+    def test_rm(self, local_mock_dir):
         """Tests the `rm` method."""
 
-        file_path = posixpath.join(test_dir, "test.txt")
+        file_path = posixpath.join(local_mock_dir, "test.txt")
         assert posixpath.exists(file_path)
 
         with LocalHook() as hook:
@@ -98,10 +91,10 @@ class TestLocalHook:
 
         assert not posixpath.exists(file_path)
 
-    def test_rmtree(self, test_dir):
+    def test_rmtree(self, local_mock_dir):
         """Tests the `rmtree` method."""
 
-        dir_path = posixpath.join(test_dir, "subdir")
+        dir_path = posixpath.join(local_mock_dir, "subdir")
         assert posixpath.exists(dir_path)
 
         with LocalHook() as hook:
@@ -133,41 +126,72 @@ class TestLocalHook:
 
             hook.makedirs(dir_path, exist_ok=True)
 
-    def test_walk(self, test_dir):
+    def test_walk(self, local_mock_dir, mock_data_dir):
         """Tests the `walk` method."""
 
         with LocalHook() as hook:
-            entries = list(hook.walk(test_dir))
+            entries = list(hook.walk(local_mock_dir))
 
-        assert entries[0] == (test_dir, ["subdir"], ["test.txt"])
-        assert entries[1] == (posixpath.join(test_dir, "subdir"), [], ["nested.txt"])
+        pytest.helpers.assert_walk_equal(entries, os.walk(mock_data_dir))
 
-    def test_glob(self, test_dir):
+    def test_glob(self, local_mock_dir, mock_data_dir):
         """Tests the `glob` method."""
 
         with LocalHook() as hook:
             # Test simple glob on txt files.
-            txt_files = hook.glob(posixpath.join(test_dir, "*.txt"))
-            assert txt_files == [posixpath.join(test_dir, "test.txt")]
+            txt_files = hook.glob(posixpath.join(local_mock_dir, "*.txt"))
+            txt_expected = glob.glob(os.path.join(mock_data_dir, "*.txt"))
+            assert_paths_equal(
+                txt_files, txt_expected, root_a=local_mock_dir, root_b=mock_data_dir
+            )
 
-            # Test glob for non-existing csv files.
-            assert hook.glob(posixpath.join(test_dir, "*.csv")) == []
+            # Test glob for non-existing tsv files.
+            assert not set(hook.glob(posixpath.join(local_mock_dir, "*.tsv")))
 
             # Test glob on directory.
-            assert hook.glob(test_dir) == [test_dir]
+            dir_paths = hook.glob(posixpath.join(local_mock_dir, "subdir"))
+            assert set(strip_root(p, root=local_mock_dir) for p in dir_paths) == {
+                "subdir"
+            }
 
             # Test glob with dir pattern.
-            assert hook.glob(posixpath.join(test_dir, "*", "*.txt")) == [
-                posixpath.join(test_dir, "subdir", "nested.txt")
-            ]
+            file_paths = hook.glob(posixpath.join(local_mock_dir, "*", "*.txt"))
+            expected_paths = glob.glob(os.path.join(mock_data_dir, "*", "*.txt"))
+            assert_paths_equal(
+                file_paths, expected_paths, root_a=local_mock_dir, root_b=mock_data_dir
+            )
 
-    def test_glob_recursive(self, test_dir):
+    def test_glob_recursive(self, local_mock_dir, mock_data_dir):
         """Tests the `glob` method with recursive = True."""
 
-        test_txt = posixpath.join(test_dir, "test.txt")
-        nested_txt = posixpath.join(test_dir, "subdir", "nested.txt")
-
         with LocalHook() as hook:
-            assert hook.glob(
-                posixpath.join(test_dir, "**", "*.txt"), recursive=True
-            ) == [test_txt, nested_txt]
+            file_paths = hook.glob(
+                posixpath.join(local_mock_dir, "**", "*.txt"), recursive=True
+            )
+            expected_paths = set(
+                glob.glob(os.path.join(mock_data_dir, "**", "*.txt"), recursive=True)
+            )
+            assert_paths_equal(
+                file_paths, expected_paths, root_a=local_mock_dir, root_b=mock_data_dir
+            )
+
+
+def assert_paths_equal(paths_a, paths_b, root_a, root_b):
+    """Helper that asserts if two sets of paths are equal after
+       removing the given root directories.
+    """
+    paths_a = set(strip_root(p, root_a) for p in paths_a)
+    paths_b = set(strip_root(p, root_b) for p in paths_b)
+    assert paths_a == paths_b
+
+
+def strip_root(path_, root):
+    """Strips root path from given file path."""
+
+    if root[-1] != "/":
+        root = root + "/"
+
+    if path_.startswith(root):
+        return path_[len(root) :]
+
+    return path_

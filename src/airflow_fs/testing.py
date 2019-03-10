@@ -2,6 +2,7 @@
 
 import os
 import posixpath
+import shutil
 
 
 class MockConnection:
@@ -14,7 +15,7 @@ class MockConnection:
         self.port = port
 
 
-def copy_tree(local_dir, dest_dir, mkdir_func, cp_func):
+def copy_tree(local_dir, dest_dir, mkdir_func=os.mkdir, cp_func=shutil.copy):
     """Copies a local directory to a remote fs, using only an
        implementation of mkdir and cp (to copy files) functions.
     """
@@ -22,8 +23,9 @@ def copy_tree(local_dir, dest_dir, mkdir_func, cp_func):
     for root, _, files in os.walk(local_dir):
         rel_root = posixpath.relpath(root, local_dir)
 
-        dest_root = posixpath.join(dest_dir, rel_root)
-        mkdir_func(dest_root)
+        if rel_root != ".":
+            dest_root = posixpath.join(dest_dir, rel_root)
+            mkdir_func(dest_root)
 
         for file_name in files:
             src_path = posixpath.normpath(
