@@ -20,4 +20,4 @@ jobs:
           command: 'SLUGIFY_USES_TEXT_UNIDECODE=yes pip install .[all,dev]'
       - run:
           name: Run tests
-          command: 'pytest tests -vvv'
+          command: 'airflow initdb && pytest tests -vvv'
