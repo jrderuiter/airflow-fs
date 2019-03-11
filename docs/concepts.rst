@@ -4,8 +4,8 @@
 Concepts
 ========
 
-Why AirflowFS?
---------------
+Why airflow-fs?
+---------------
 
 Although Airflow provides a large set of builtin hooks and operators to work with,
 these builtin components generally lack a common reusable interface across related
@@ -15,7 +15,7 @@ for working with different file systems. This (among other things) has lead to t
 widespread development of many a-to-b operators (e.g., S3ToHiveOperator,
 GcsToS3Operator, etc.), resulting in unnecessary code duplication.
 
-AirflowFS aims to solve this issue by defining a common interface for file system hooks,
+airflow-fs aims to solve this issue by defining a common interface for file system hooks,
 which is based on a subset of functions from the `os` and `shutil` modules in the
 Python standard library. This interface allows operations to be performed across
 different file systems using the same code, easing their use for developers. Moreover,
@@ -49,7 +49,7 @@ system virtually identical:
 For more details on the methods provided by file system hooks, see the Usage and
 API sections of this documentation.
 
-Out of the box, AirflowFS provides hooks for a number of frequently used file systems
+Out of the box, airflow-fs provides hooks for a number of frequently used file systems
 such as FTP, S3, SFTP and HDFS. Support for additional file systems can be added by
 implementing additional `FsHook` subclasses, which provide file system-specific
 implementations for the following methods:
@@ -70,7 +70,7 @@ implemented for each specific hook.
 File system operators
 ---------------------
 
-Besides hooks, AirflowFS also provides several file system operators for performing
+Besides hooks, airflow-fs also provides several file system operators for performing
 common tasks such as copying and deleting files. These operators are built on top of
 file system hooks to make their implementation independent of the underlying file
 system.

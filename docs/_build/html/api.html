@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>API &mdash; airflow-fs 0.1.dev16+g7be5685.d20190308 documentation</title>
+  <title>API &mdash; airflow-fs 0.1.dev23+g0959de4.d20190311 documentation</title>
   
 
   
@@ -85,7 +85,7 @@
             
             
               <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="index.html">AirflowFS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">airflow-fs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="concepts.html">Concepts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
@@ -172,9 +172,9 @@
 <dd><p>Base FsHook defining the FsHook interface and providing some basic
 functionality built on this interface.</p>
 <dl class="method">
-<dt id="airflow_fs.hooks.FsHook.copy_file">
-<code class="descname">copy_file</code><span class="sig-paren">(</span><em>src_path</em>, <em>dest_path</em>, <em>src_hook=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/fs_hook.html#FsHook.copy_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FsHook.copy_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Copies files into the hooks file system.</p>
+<dt id="airflow_fs.hooks.FsHook.copy">
+<code class="descname">copy</code><span class="sig-paren">(</span><em>src_path</em>, <em>dest_path</em>, <em>src_hook=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/hooks/fs_hook.html#FsHook.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.hooks.FsHook.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copies file(s) into the hooks file system.</p>
 <p>By default, source files are assumed to be on the same file system as the
 destination (the hooks file system). To copy between different file systems
 or file systems in different locations, a source file hook can be provided

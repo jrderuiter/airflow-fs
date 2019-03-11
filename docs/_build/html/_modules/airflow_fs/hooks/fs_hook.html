@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>airflow_fs.hooks.fs_hook &mdash; airflow-fs 0.1.dev16+g7be5685.d20190308 documentation</title>
+  <title>airflow_fs.hooks.fs_hook &mdash; airflow-fs 0.1.dev23+g0959de4.d20190311 documentation</title>
   
 
   
@@ -83,7 +83,7 @@
             
             
               <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../index.html">AirflowFS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">airflow-fs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../concepts.html">Concepts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../usage.html">Usage</a></li>
@@ -299,8 +299,8 @@
 
     <span class="c1"># Methods for copying files between hooks.</span>
 
-<div class="viewcode-block" id="FsHook.copy_file"><a class="viewcode-back" href="../../../api.html#airflow_fs.hooks.FsHook.copy_file">[docs]</a>    <span class="k">def</span> <span class="nf">copy_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src_path</span><span class="p">,</span> <span class="n">dest_path</span><span class="p">,</span> <span class="n">src_hook</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Copies files into the hooks file system.</span>
+<div class="viewcode-block" id="FsHook.copy"><a class="viewcode-back" href="../../../api.html#airflow_fs.hooks.FsHook.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src_path</span><span class="p">,</span> <span class="n">dest_path</span><span class="p">,</span> <span class="n">src_hook</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Copies file(s) into the hooks file system.</span>
 
 <span class="sd">        By default, source files are assumed to be on the same file system as the</span>
 <span class="sd">        destination (the hooks file system). To copy between different file systems</span>
