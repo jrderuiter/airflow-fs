@@ -10,7 +10,7 @@ import fnmatch
 
 __all__ = ["glob", "iglob", "escape"]
 
-def glob(pathname, *, hook, recursive=False):
+def glob(pathname, hook, recursive=False):
     """Return a list of paths matching a pathname pattern.
 
     The pattern may contain simple shell-style wildcards a la
@@ -23,7 +23,7 @@ def glob(pathname, *, hook, recursive=False):
     """
     return list(iglob(pathname, hook=hook, recursive=recursive))
 
-def iglob(pathname, *, hook, recursive=False):
+def iglob(pathname, hook, recursive=False):
     """Return an iterator which yields the paths matching a pathname pattern.
 
     The pattern may contain simple shell-style wildcards a la
@@ -54,9 +54,11 @@ def _iglob(pathname, recursive, dironly, hook):
         return
     if not dirname:
         if recursive and _isrecursive(basename):
-            yield from _glob2(dirname, basename, dironly, hook=hook)
+            for entry in _glob2(dirname, basename, dironly, hook=hook):
+                yield entry
         else:
-            yield from _glob1(dirname, basename, dironly, hook=hook)
+            for entry in _glob1(dirname, basename, dironly, hook=hook):
+                yield entry
         return
     # `posixpath.split()` returns the argument itself as a dirname if it is a
     # drive or UNC path.  Prevent an infinite recursion if a drive or UNC path
@@ -112,7 +114,8 @@ def glob1(dirname, pattern, hook):
 def _glob2(dirname, pattern, dironly, hook):
     assert _isrecursive(pattern)
     yield pattern[:0]
-    yield from _rlistdir(dirname, dironly, hook=hook)
+    for entry in _rlistdir(dirname, dironly, hook=hook):
+        yield entry
 
 # If dironly is false, yields all file names inside a directory.
 # If dironly is true, yields only directory names.

@@ -1,21 +1,7 @@
 version: 2
-jobs:
-  lint:
+
+test_shared: &test_shared
     working_directory: ~/circleci
-    docker:
-      - image: python:python-3.6.8-stretch
-    steps:
-      - checkout
-      - run:
-          name: Install pylint
-          command: pip install pylint
-      - run:
-          name: Run pylint
-          command: pylint src
-  test:
-    working_directory: ~/circleci
-    docker:
-      - image: jrderuiter/airflow-fs-ci
     steps:
       - checkout
       - run:
@@ -33,9 +19,33 @@ jobs:
       - run:
           name: Run tests
           command: 'airflow initdb && pytest tests -vvv'
+
+jobs:
+  lint:
+    working_directory: ~/circleci
+    docker:
+      - image: python:python-3.6.8-stretch
+    steps:
+      - checkout
+      - run:
+          name: Install pylint
+          command: pip install pylint
+      - run:
+          name: Run pylint
+          command: pylint src
+  "test-2.7":
+    <<: *test_shared
+    docker:
+      - image: jrderuiter/airflow-fs-ci:2.7.16
+  "test-3.6":
+    <<: *test_shared
+    docker:
+      - image: jrderuiter/airflow-fs-ci:3.6.8
+
 workflows:
   version: 2
   lint_and_test:
     jobs:
       - lint
-      - test
+      - "test-2.7"
+      - "test-3.6"

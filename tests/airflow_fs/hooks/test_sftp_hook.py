@@ -32,7 +32,7 @@ def sftp_client():
 def sftp_mock_dir(mock_data_dir, sftp_client, tmpdir):
     """Creates a mock directory containing the standard test data."""
 
-    sftp_client.put_r(mock_data_dir, tmpdir)
+    sftp_client.put_r(mock_data_dir, str(tmpdir))
     return str(tmpdir)
 
 
@@ -53,7 +53,7 @@ class TestSftpHook:
     def test_open_write(self, sftp_conn, sftp_client, tmpdir):
         """Tests writing of a file using the `open` method."""
 
-        file_path = posixpath.join(tmpdir, "test2.txt")
+        file_path = posixpath.join(str(tmpdir), "test2.txt")
         assert not sftp_client.exists(file_path)
 
         with SftpHook("sftp_default") as hook:
@@ -86,7 +86,7 @@ class TestSftpHook:
     def test_mkdir(self, sftp_conn, sftp_client, tmpdir):
         """Tests the `mkdir` method with mode parameter."""
 
-        dir_path = posixpath.join(tmpdir, "subdir")
+        dir_path = posixpath.join(str(tmpdir), "subdir")
         assert not sftp_client.exists(dir_path)
 
         with SftpHook("sftp_default") as hook:
@@ -98,7 +98,7 @@ class TestSftpHook:
     def test_mkdir_exists(self, sftp_conn, sftp_client, tmpdir):
         """Tests the `mkdir` method with the exists_ok parameter."""
 
-        dir_path = posixpath.join(tmpdir, "subdir")
+        dir_path = posixpath.join(str(tmpdir), "subdir")
         assert not sftp_client.exists(dir_path)
 
         with SftpHook("sftp_default") as hook:
@@ -134,7 +134,7 @@ class TestSftpHook:
     def test_makedirs(self, sftp_conn, sftp_client, tmpdir):
         """Tests the `mkdir` method with mode parameter."""
 
-        dir_path = posixpath.join(tmpdir, "some", "nested", "dir")
+        dir_path = posixpath.join(str(tmpdir), "some", "nested", "dir")
 
         with SftpHook("sftp_default") as hook:
             hook.makedirs(dir_path, mode=0o750)
@@ -145,7 +145,7 @@ class TestSftpHook:
     def test_makedirs_exists(self, sftp_conn, sftp_client, tmpdir):
         """Tests the `mkdir` method with exists_ok parameter."""
 
-        dir_path = posixpath.join(tmpdir, "some", "nested", "dir")
+        dir_path = posixpath.join(str(tmpdir), "some", "nested", "dir")
 
         with SftpHook("sftp_default") as hook:
             hook.makedirs(dir_path, exist_ok=False)

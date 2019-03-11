@@ -1,6 +1,7 @@
 import glob
 import os
 import posixpath
+import sys
 
 import pytest
 
@@ -24,7 +25,7 @@ class TestLocalHook:
     def test_open_write(self, tmpdir):
         """Tests writing of a file using the `open` method."""
 
-        file_path = posixpath.join(tmpdir, "test2.txt")
+        file_path = posixpath.join(str(tmpdir), "test2.txt")
         assert not posixpath.exists(file_path)
 
         with LocalHook() as hook:
@@ -57,7 +58,7 @@ class TestLocalHook:
     def test_mkdir(self, tmpdir):
         """Tests the `mkdir` method with mode parameter."""
 
-        dir_path = posixpath.join(tmpdir, "subdir")
+        dir_path = posixpath.join(str(tmpdir), "subdir")
         assert not posixpath.exists(dir_path)
 
         with LocalHook() as hook:
@@ -69,7 +70,7 @@ class TestLocalHook:
     def test_mkdir_exists(self, tmpdir):
         """Tests the `mkdir` method with the exists_ok parameter."""
 
-        dir_path = posixpath.join(tmpdir, "subdir")
+        dir_path = posixpath.join(str(tmpdir), "subdir")
         assert not posixpath.exists(dir_path)
 
         with LocalHook() as hook:
@@ -105,7 +106,7 @@ class TestLocalHook:
     def test_makedirs(self, tmpdir):
         """Tests the `mkdir` method with mode parameter."""
 
-        dir_path = posixpath.join(tmpdir, "some", "nested", "dir")
+        dir_path = posixpath.join(str(tmpdir), "some", "nested", "dir")
 
         with LocalHook() as hook:
             hook.makedirs(dir_path, mode=0o750)
@@ -116,7 +117,7 @@ class TestLocalHook:
     def test_makedirs_exists(self, tmpdir):
         """Tests the `mkdir` method with exists_ok parameter."""
 
-        dir_path = posixpath.join(tmpdir, "some", "nested", "dir")
+        dir_path = posixpath.join(str(tmpdir), "some", "nested", "dir")
 
         with LocalHook() as hook:
             hook.makedirs(dir_path, exist_ok=False)
@@ -161,6 +162,9 @@ class TestLocalHook:
                 file_paths, expected_paths, root_a=local_mock_dir, root_b=mock_data_dir
             )
 
+    @pytest.mark.skipif(
+        sys.version_info < (3, 5), reason="recursive glob requires Python 3.5+"
+    )
     def test_glob_recursive(self, local_mock_dir, mock_data_dir):
         """Tests the `glob` method with recursive = True."""
 

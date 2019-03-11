@@ -16,7 +16,7 @@ class CopyFileOperator(BaseOperator):
 
     @apply_defaults
     def __init__(self, src_path, dest_path, src_hook=None, dest_hook=None, **kwargs):
-        super().__init__(**kwargs)
+        super(CopyFileOperator, self).__init__(**kwargs)
 
         self._src_path = src_path
         self._dest_path = dest_path
@@ -49,7 +49,7 @@ class DeleteFileOperator(BaseOperator):
 
     @apply_defaults
     def __init__(self, path, hook=None, **kwargs):
-        super().__init__(**kwargs)
+        super(DeleteFileOperator, self).__init__(**kwargs)
         self._path = path
         self._hook = hook or LocalHook()
 
@@ -68,7 +68,7 @@ class DeleteTreeOperator(BaseOperator):
 
     @apply_defaults
     def __init__(self, path, hook=None, **kwargs):
-        super().__init__(**kwargs)
+        super(DeleteTreeOperator, self).__init__(**kwargs)
         self._path = path
         self._hook = hook or LocalHook()
 

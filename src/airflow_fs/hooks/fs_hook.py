@@ -1,5 +1,6 @@
 """Base class defining the file system hook interface."""
 
+from builtins import super
 import errno
 import posixpath
 import shutil
@@ -135,7 +136,8 @@ class FsHook(BaseHook):
         yield root, sub_dirs, files
 
         for sub_dir in sub_dirs:
-            yield from self.walk(posixpath.join(root, sub_dir))
+            for entry in self.walk(posixpath.join(root, sub_dir)):
+                yield entry
 
     def glob(self, pattern, recursive=False):
         """Return a list of paths matching a pathname pattern."""

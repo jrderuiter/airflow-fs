@@ -11,7 +11,7 @@ with open("README.rst") as readme_file:
 with open("HISTORY.rst") as history_file:
     history = history_file.read()
 
-requirements = ["apache-airflow"]
+requirements = ["apache-airflow", "future"]
 
 setup_requirements = ["pytest-runner", "setuptools_scm"]
 
@@ -22,13 +22,14 @@ dev_requirements = [
     "sphinx",
     "sphinx_rtd_theme",
     "watchdog",
-    "black",
+    "black; python_version>'3'",
     "pytest-helpers-namespace",
 ]
 
 extra_requirements = {
     "ftp": ["ftputil"],
-    "hdfs": ["pyarrow"],
+    # Pyarrow issue on 2.7: https://issues.apache.org/jira/browse/ARROW-4413
+    "hdfs": ["pyarrow<0.12; python_version<'3'", "pyarrow; python_version>='3'"],
     "s3": ["s3fs"],
     "sftp": ["pysftp"],
     "dev": dev_requirements + test_requirements,

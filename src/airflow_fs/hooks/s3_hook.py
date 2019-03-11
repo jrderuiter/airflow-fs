@@ -89,7 +89,8 @@ class S3Hook(FsHook):
 
     def walk(self, root):
         root = _remove_trailing_slash(root)
-        yield from super().walk(root)
+        for entry in super().walk(root):
+            yield entry
 
 
 def _remove_trailing_slash(path):

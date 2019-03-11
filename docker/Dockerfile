@@ -1,4 +1,9 @@
-FROM python:3.6.6-stretch
+ARG PYTHON_VERSION=3.6.8
+FROM python:${PYTHON_VERSION}-stretch
+
+LABEL org.label-schema.name="airflow-fs ci $PYTHON_VERSION" \
+      org.label-schema.build-date=$BUILD_DATE \
+      org.label-schema.version=$PYTHON_VERSION
 
 # Setup password-less SSH.
 RUN apt-get update \

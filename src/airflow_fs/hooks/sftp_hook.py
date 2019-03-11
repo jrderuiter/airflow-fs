@@ -73,7 +73,7 @@ class SftpHook(FsHook):
             if not exist_ok:
                 self._raise_dir_exists(dir_path)
         else:
-            self.get_conn().mkdir(dir_path, mode=int(oct(mode)[2:]))
+            self.get_conn().mkdir(dir_path, mode=self._int_mode(mode))
 
     def listdir(self, dir_path):
         return self.get_conn().listdir(dir_path)
@@ -95,4 +95,9 @@ class SftpHook(FsHook):
             if not exist_ok:
                 self._raise_dir_exists(dir_path)
         else:
-            self.get_conn().makedirs(dir_path, mode=int(oct(mode)[2:]))
+            self.get_conn().makedirs(dir_path, mode=self._int_mode(mode))
+
+    @staticmethod
+    def _int_mode(mode):
+        """Convert octal mode to its literal int representation."""
+        return int(oct(mode)[-3:])
