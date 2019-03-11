@@ -29,6 +29,7 @@ class FsHook(BaseHook):
 
     # Interface methods (should be implemented by sub-classes).
 
+    # pylint: disable=missing-docstring
     def get_conn(self):
         raise NotImplementedError()
 

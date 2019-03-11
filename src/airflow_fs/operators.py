@@ -8,6 +8,8 @@ from airflow.utils import apply_defaults
 from airflow_fs.hooks.local_hook import LocalHook
 from airflow_fs.ports import glob
 
+# pylint: disable=unused-argument,missing-docstring
+
 
 class CopyFileOperator(BaseOperator):
     """Operator for copying files between file systems."""
