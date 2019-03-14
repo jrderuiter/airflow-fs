@@ -13,7 +13,7 @@ with open("HISTORY.rst") as history_file:
 
 requirements = ["apache-airflow", "future"]
 
-setup_requirements = ["pytest-runner", "setuptools_scm"]
+setup_requirements = ["pytest-runner"]
 
 test_requirements = ["pytest", "pytest-mock", "pytest-cov"]
 dev_requirements = [
@@ -24,6 +24,7 @@ dev_requirements = [
     "watchdog",
     "black; python_version>'3'",
     "pytest-helpers-namespace",
+    "bump2version"
 ]
 
 extra_requirements = {
@@ -58,7 +59,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
     ],
-    description="Filesystem hooks and operators for Airflow.",
+    description="Composable filesystem hooks and operators for Airflow.",
     install_requires=requirements,
     extras_require=extra_requirements,
     license="MIT license",
@@ -66,9 +67,9 @@ setuptools.setup(
     include_package_data=True,
     keywords="airflow_fs",
     name="airflow_fs",
+    version="0.1.0.dev0",
     packages=setuptools.find_packages("src"),
     package_dir={"": "src"},
-    use_scm_version=True,
     setup_requires=setup_requirements,
     test_suite="tests",
     tests_require=test_requirements,
