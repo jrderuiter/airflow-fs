@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>airflow-fs &mdash; airflow-fs 0.1.dev23+g0959de4.d20190311 documentation</title>
+  <title>airflow-fs &mdash; airflow-fs 0.1.0 documentation</title>
   
 
   
@@ -158,14 +158,14 @@
             
   <div class="section" id="airflow-fs">
 <h1>airflow-fs<a class="headerlink" href="#airflow-fs" title="Permalink to this headline">¶</a></h1>
-<a class="reference external image-reference" href="https://circleci.com/gh/jrderuiter/airflow-fs"><img alt="https://circleci.com/gh/jrderuiter/airflow-fs.svg" src="https://circleci.com/gh/jrderuiter/airflow-fs.svg" /></a>
+<a class="reference external image-reference" href="https://circleci.com/gh/jrderuiter/airflow-fs"><img alt="https://img.shields.io/circleci/project/github/jrderuiter/airflow-fs/master.svg" src="https://img.shields.io/circleci/project/github/jrderuiter/airflow-fs/master.svg" /></a>
 <a class="reference external image-reference" href="https://pypi.python.org/pypi/airflow-fs"><img alt="https://img.shields.io/pypi/v/airflow_fs.svg" src="https://img.shields.io/pypi/v/airflow_fs.svg" /></a>
 <p>airflow-fs is Python package that provides hooks and operators for manipulating
 files across a variety of file systems using Apache Airflow.</p>
 <div class="section" id="why-airflow-fs">
 <h2>Why airflow-fs?<a class="headerlink" href="#why-airflow-fs" title="Permalink to this headline">¶</a></h2>
-<p>In contrast to Airflows builtin file system hooks/operators, airflow-fs implements a
-single interface for different file system hooks. This approach allows us to interact
+<p>Airflow-fs implements a single interface for different file system hooks, in contrast
+to Airflows builtin file system hooks/operators. This approach allows us to interact
 with files independently of the underlying file system, using a common set of operators
 for performing general operations such as copying and deleting files.</p>
 <p>Currently, airflow-fs supports the following file systems: local, FTP, HDFS, S3 and SFTP.

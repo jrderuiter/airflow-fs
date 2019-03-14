@@ -14,8 +14,8 @@ files across a variety of file systems using Apache Airflow.
 Why airflow-fs?
 ---------------
 
-In contrast to Airflows builtin file system hooks/operators, airflow-fs implements a
-single interface for different file system hooks. This approach allows us to interact
+Airflow-fs implements a single interface for different file system hooks, in contrast
+to Airflows builtin file system hooks/operators. This approach allows us to interact
 with files independently of the underlying file system, using a common set of operators
 for performing general operations such as copying and deleting files.
 

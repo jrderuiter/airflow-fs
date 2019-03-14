@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>airflow_fs.hooks.fs_hook &mdash; airflow-fs 0.1.dev23+g0959de4.d20190311 documentation</title>
+  <title>airflow_fs.hooks.fs_hook &mdash; airflow-fs 0.1.0 documentation</title>
   
 
   
@@ -156,6 +156,7 @@
   <h1>Source code for airflow_fs.hooks.fs_hook</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Base class defining the file system hook interface.&quot;&quot;&quot;</span>
 
+<span class="kn">from</span> <span class="nn">builtins</span> <span class="k">import</span> <span class="nb">super</span>
 <span class="kn">import</span> <span class="nn">errno</span>
 <span class="kn">import</span> <span class="nn">posixpath</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
@@ -184,6 +185,7 @@
 
     <span class="c1"># Interface methods (should be implemented by sub-classes).</span>
 
+    <span class="c1"># pylint: disable=missing-docstring</span>
     <span class="k">def</span> <span class="nf">get_conn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
 
@@ -291,7 +293,8 @@
         <span class="k">yield</span> <span class="n">root</span><span class="p">,</span> <span class="n">sub_dirs</span><span class="p">,</span> <span class="n">files</span>
 
         <span class="k">for</span> <span class="n">sub_dir</span> <span class="ow">in</span> <span class="n">sub_dirs</span><span class="p">:</span>
-            <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">posixpath</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">sub_dir</span><span class="p">))</span></div>
+            <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">posixpath</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">sub_dir</span><span class="p">)):</span>
+                <span class="k">yield</span> <span class="n">entry</span></div>
 
 <div class="viewcode-block" id="FsHook.glob"><a class="viewcode-back" href="../../../api.html#airflow_fs.hooks.FsHook.glob">[docs]</a>    <span class="k">def</span> <span class="nf">glob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a list of paths matching a pathname pattern.&quot;&quot;&quot;</span>

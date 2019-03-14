@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>airflow_fs.hooks.s3_hook &mdash; airflow-fs 0.1.dev23+g0959de4.d20190311 documentation</title>
+  <title>airflow_fs.hooks.s3_hook &mdash; airflow-fs 0.1.0 documentation</title>
   
 
   
@@ -245,7 +245,8 @@
 
 <div class="viewcode-block" id="S3Hook.walk"><a class="viewcode-back" href="../../../api.html#airflow_fs.hooks.S3Hook.walk">[docs]</a>    <span class="k">def</span> <span class="nf">walk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">root</span><span class="p">):</span>
         <span class="n">root</span> <span class="o">=</span> <span class="n">_remove_trailing_slash</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
-        <span class="k">yield from</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">root</span><span class="p">)</span></div></div>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">root</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">entry</span></div></div>
 
 
 <span class="k">def</span> <span class="nf">_remove_trailing_slash</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
