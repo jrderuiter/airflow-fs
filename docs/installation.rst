@@ -4,9 +4,6 @@
 Installation
 ============
 
-**Note: airflow-fs is not *yet* available in PyPI, but will be published soon.
-Until then, please install airflow-fs from source.**
-
 Stable release
 --------------
 
