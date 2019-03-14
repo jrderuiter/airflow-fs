@@ -2,7 +2,7 @@
 airflow-fs
 ==========
 
-.. image:: https://circleci.com/gh/jrderuiter/airflow-fs.svg
+.. image:: https://img.shields.io/circleci/project/github/jrderuiter/airflow-fs/master.svg
         :target: https://circleci.com/gh/jrderuiter/airflow-fs
 
 .. image:: https://img.shields.io/pypi/v/airflow_fs.svg
