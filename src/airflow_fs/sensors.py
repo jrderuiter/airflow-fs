@@ -18,6 +18,7 @@ class FileSensor(BaseSensorOperator):
         self._file_pattern = file_pattern
         self._hook = hook or LocalHook()
 
+    # pylint: disable=unused-argument,missing-docstring
     def poke(self, context):
         with self._hook as hook:
             if hook.glob(self._file_pattern):
