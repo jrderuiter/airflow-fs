@@ -168,7 +168,15 @@
 
 
 <div class="viewcode-block" id="CopyFileOperator"><a class="viewcode-back" href="../../api.html#airflow_fs.operators.CopyFileOperator">[docs]</a><span class="k">class</span> <span class="nc">CopyFileOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Operator for copying files between file systems.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Operator for copying files between file systems.</span>
+
+<span class="sd">    :param str src_path: File path to copy files from. Can be any valid file path or</span>
+<span class="sd">        glob pattern. Note that if a glob pattern is given, dest_path is taken to be</span>
+<span class="sd">        a destination directory, rather than a destination file path.</span>
+<span class="sd">    :param str dest_path: File path top copy files to.</span>
+<span class="sd">    :param FsHook src_hook: File system hook to copy files from.</span>
+<span class="sd">    :param FsHook dest_hook: File system hook to copy files to.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_src_path&quot;</span><span class="p">,</span> <span class="s2">&quot;_dest_path&quot;</span><span class="p">)</span>
 
@@ -201,7 +209,12 @@
 
 
 <div class="viewcode-block" id="DeleteFileOperator"><a class="viewcode-back" href="../../api.html#airflow_fs.operators.DeleteFileOperator">[docs]</a><span class="k">class</span> <span class="nc">DeleteFileOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Deletes files at given path.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Deletes files at a given path.</span>
+
+<span class="sd">    :param str path: File path to file(s) to delete. Can be any valid file path or</span>
+<span class="sd">        glob pattern.</span>
+<span class="sd">    :param FsHook hook: File system hook to use when deleting files.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_path&quot;</span><span class="p">,)</span>
 
@@ -220,7 +233,12 @@
 
 
 <div class="viewcode-block" id="DeleteTreeOperator"><a class="viewcode-back" href="../../api.html#airflow_fs.operators.DeleteTreeOperator">[docs]</a><span class="k">class</span> <span class="nc">DeleteTreeOperator</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Deletes files at given path.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Deletes a directory tree at a given path.</span>
+
+<span class="sd">    :param str path: File path to directory to delete. Can be any valid file path or</span>
+<span class="sd">        glob pattern.</span>
+<span class="sd">    :param FsHook hook: File system hook to use when deleting directories.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">template_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_path&quot;</span><span class="p">,)</span>
 

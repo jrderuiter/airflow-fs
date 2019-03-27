@@ -1,12 +1,24 @@
+import datetime
 import os
 import posixpath
 
+from airflow import DAG
 import boto3
 from moto import mock_s3
 import pytest
 import s3fs
 
 from airflow_fs.testing import copy_tree
+
+
+@pytest.fixture
+def test_dag():
+    """Test DAG to use as fixture."""
+    return DAG(
+        "test_dag",
+        default_args={"owner": "airflow", "start_date": datetime.datetime(2018, 1, 1)},
+        schedule_interval=datetime.timedelta(days=1),
+    )
 
 
 @pytest.fixture(scope="session")

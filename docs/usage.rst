@@ -155,3 +155,21 @@ Deleting files or directories
         "some_directory",
         hook=FtpHook(conn_id="ftp_default")
     )
+
+Sensors
+-------
+
+Waiting for files matching a pattern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+    from airflow_fs.hooks import S3Hook
+    from airflow_fs.sensors import FileSensor
+
+    file_sensor = FileSensor(
+        path="my-bucket/*.txt",
+        hook=S3Hook(conn_id="s3_default"),
+        task_id="file_sensor",
+        dag=dag
+    )

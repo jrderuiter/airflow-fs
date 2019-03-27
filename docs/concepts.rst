@@ -87,8 +87,34 @@ using the `CopyFileOperator`:
         src_path="my-bucket/example.txt",
         dest_path="example.txt",
         src_hook=S3Hook(conn_id="s3_default"),
-        dest_hook=FtpHook(conn_id="ftp_default")
+        dest_hook=FtpHook(conn_id="ftp_default"),
+        task_id="copy_file",
+        dag=dag)
     )
 
 For more details on the different file system operators, see the Usage and
 API sections.
+
+File system sensors
+-------------------
+
+In a fashion similar to the file system operators, airflow-fs also provides file system
+sensors that can be used to wait for files or directories to show up on a given file
+system.
+
+For example, the `FileSensor` class allows us to wait for files matching a given
+file pattern:
+
+.. code-block:: python
+
+    from airflow_fs.hooks import S3Hook
+    from airflow_fs.sensors import FileSensor
+
+    file_sensor = FileSensor(
+        path="my-bucket/*.txt",
+        hook=S3Hook(conn_id="s3_default"),
+        task_id="file_sensor",
+        dag=dag
+    )
+
+For more details, see the Usage and API sections.
