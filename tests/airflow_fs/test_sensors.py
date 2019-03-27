@@ -11,7 +11,7 @@ class TestFileSensor:
         """Tests example with present files."""
 
         task = sensors.FileSensor(
-            file_pattern=posixpath.join(local_mock_dir, "*.txt"),
+            path=posixpath.join(local_mock_dir, "*.txt"),
             hook=LocalHook(),
             task_id="file_sensor",
             dag=test_dag
@@ -22,7 +22,7 @@ class TestFileSensor:
         """Tests example with missing files."""
 
         task = sensors.FileSensor(
-            file_pattern=posixpath.join(local_mock_dir, "*.xml"),
+            path=posixpath.join(local_mock_dir, "*.xml"),
             hook=LocalHook(),
             task_id="file_sensor",
             dag=test_dag
@@ -33,7 +33,7 @@ class TestFileSensor:
         """Tests example with non-existing dir."""
 
         task = sensors.FileSensor(
-            file_pattern=posixpath.join(local_mock_dir, "non_existing_dir", "*.xml"),
+            path=posixpath.join(local_mock_dir, "non_existing_dir", "*.xml"),
             hook=LocalHook(),
             task_id="file_sensor",
             dag=test_dag

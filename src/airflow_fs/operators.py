@@ -12,7 +12,15 @@ from airflow_fs.ports import glob
 
 
 class CopyFileOperator(BaseOperator):
-    """Operator for copying files between file systems."""
+    """Operator for copying files between file systems.
+
+    :param str src_path: File path to copy files from. Can be any valid file path or
+        glob pattern. Note that if a glob pattern is given, dest_path is taken to be
+        a destination directory, rather than a destination file path.
+    :param str dest_path: File path top copy files to.
+    :param FsHook src_hook: File system hook to copy files from.
+    :param FsHook dest_hook: File system hook to copy files to.
+    """
 
     template_fields = ("_src_path", "_dest_path")
 
@@ -45,7 +53,12 @@ class CopyFileOperator(BaseOperator):
 
 
 class DeleteFileOperator(BaseOperator):
-    """Deletes files at given path."""
+    """Deletes files at a given path.
+
+    :param str path: File path to file(s) to delete. Can be any valid file path or
+        glob pattern.
+    :param FsHook hook: File system hook to use when deleting files.
+    """
 
     template_fields = ("_path",)
 
@@ -64,7 +77,12 @@ class DeleteFileOperator(BaseOperator):
 
 
 class DeleteTreeOperator(BaseOperator):
-    """Deletes files at given path."""
+    """Deletes a directory tree at a given path.
+
+    :param str path: File path to directory to delete. Can be any valid file path or
+        glob pattern.
+    :param FsHook hook: File system hook to use when deleting directories.
+    """
 
     template_fields = ("_path",)
 

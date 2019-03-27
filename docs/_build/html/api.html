@@ -92,6 +92,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#module-airflow_fs.hooks">Hooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-airflow_fs.operators">Operators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-airflow_fs.sensors">Sensors</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
@@ -971,18 +972,90 @@ If false, an IOError is raised if the directory exists.</li>
 <dt id="airflow_fs.operators.CopyFileOperator">
 <em class="property">class </em><code class="descclassname">airflow_fs.operators.</code><code class="descname">CopyFileOperator</code><span class="sig-paren">(</span><em>src_path</em>, <em>dest_path</em>, <em>src_hook=None</em>, <em>dest_hook=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/operators.html#CopyFileOperator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.operators.CopyFileOperator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Operator for copying files between file systems.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>src_path</strong> (<em>str</em>) – File path to copy files from. Can be any valid file path or
+glob pattern. Note that if a glob pattern is given, dest_path is taken to be
+a destination directory, rather than a destination file path.</li>
+<li><strong>dest_path</strong> (<em>str</em>) – File path top copy files to.</li>
+<li><strong>src_hook</strong> (<a class="reference internal" href="#airflow_fs.hooks.FsHook" title="airflow_fs.hooks.FsHook"><em>FsHook</em></a>) – File system hook to copy files from.</li>
+<li><strong>dest_hook</strong> (<a class="reference internal" href="#airflow_fs.hooks.FsHook" title="airflow_fs.hooks.FsHook"><em>FsHook</em></a>) – File system hook to copy files to.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="class">
 <dt id="airflow_fs.operators.DeleteFileOperator">
 <em class="property">class </em><code class="descclassname">airflow_fs.operators.</code><code class="descname">DeleteFileOperator</code><span class="sig-paren">(</span><em>path</em>, <em>hook=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/operators.html#DeleteFileOperator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.operators.DeleteFileOperator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Deletes files at given path.</p>
+<dd><p>Deletes files at a given path.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path</strong> (<em>str</em>) – File path to file(s) to delete. Can be any valid file path or
+glob pattern.</li>
+<li><strong>hook</strong> (<a class="reference internal" href="#airflow_fs.hooks.FsHook" title="airflow_fs.hooks.FsHook"><em>FsHook</em></a>) – File system hook to use when deleting files.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="class">
 <dt id="airflow_fs.operators.DeleteTreeOperator">
 <em class="property">class </em><code class="descclassname">airflow_fs.operators.</code><code class="descname">DeleteTreeOperator</code><span class="sig-paren">(</span><em>path</em>, <em>hook=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/operators.html#DeleteTreeOperator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.operators.DeleteTreeOperator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Deletes files at given path.</p>
+<dd><p>Deletes a directory tree at a given path.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path</strong> (<em>str</em>) – File path to directory to delete. Can be any valid file path or
+glob pattern.</li>
+<li><strong>hook</strong> (<a class="reference internal" href="#airflow_fs.hooks.FsHook" title="airflow_fs.hooks.FsHook"><em>FsHook</em></a>) – File system hook to use when deleting directories.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-airflow_fs.sensors">
+<span id="sensors"></span><h2>Sensors<a class="headerlink" href="#module-airflow_fs.sensors" title="Permalink to this headline">¶</a></h2>
+<p>Module containing file system sensors.</p>
+<dl class="class">
+<dt id="airflow_fs.sensors.FileSensor">
+<em class="property">class </em><code class="descclassname">airflow_fs.sensors.</code><code class="descname">FileSensor</code><span class="sig-paren">(</span><em>path</em>, <em>hook=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/sensors.html#FileSensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.sensors.FileSensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sensor that waits for files matching a given file pattern.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path</strong> (<em>str</em>) – File path to match files to. Can be any valid
+glob pattern.</li>
+<li><strong>hook</strong> (<a class="reference internal" href="#airflow_fs.hooks.FsHook" title="airflow_fs.hooks.FsHook"><em>FsHook</em></a>) – File system hook to use when looking for files.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="airflow_fs.sensors.FileSensor.poke">
+<code class="descname">poke</code><span class="sig-paren">(</span><em>context</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/airflow_fs/sensors.html#FileSensor.poke"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#airflow_fs.sensors.FileSensor.poke" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function that the sensors defined while deriving this class should
+override.</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>
