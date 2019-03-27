@@ -28,3 +28,14 @@ class TestFileSensor:
             dag=test_dag
         )
         assert not task.poke({})
+
+    def test_non_existing_dir(self, local_mock_dir, test_dag):
+        """Tests example with non-existing dir."""
+
+        task = sensors.FileSensor(
+            file_pattern=posixpath.join(local_mock_dir, "non_existing_dir", "*.xml"),
+            hook=LocalHook(),
+            task_id="file_sensor",
+            dag=test_dag
+        )
+        assert not task.poke({})
