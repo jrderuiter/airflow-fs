@@ -1,20 +1,8 @@
 import datetime
 import posixpath
-import pytest
-
-from airflow import DAG
 
 from airflow_fs.hooks import S3Hook
 from airflow_fs import operators
-
-
-@pytest.fixture
-def test_dag():
-    return DAG(
-        "test_dag",
-        default_args={"owner": "airflow", "start_date": datetime.datetime(2018, 1, 1)},
-        schedule_interval=datetime.timedelta(days=1),
-    )
 
 
 def _run_task(task, dag):
