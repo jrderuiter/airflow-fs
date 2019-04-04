@@ -67,7 +67,7 @@ setuptools.setup(
     include_package_data=True,
     keywords="airflow_fs",
     name="airflow_fs",
-    version="0.1.0",
+    version="0.2.0",
     packages=setuptools.find_packages("src"),
     package_dir={"": "src"},
     setup_requires=setup_requirements,
