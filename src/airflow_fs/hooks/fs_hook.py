@@ -16,7 +16,7 @@ class FsHook(BaseHook):
     """
 
     def __init__(self):
-        super().__init__(source=None)
+        super().__init__()
 
     def __enter__(self):
         return self
